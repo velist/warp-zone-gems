@@ -8,81 +8,111 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Mario-inspired color palette */
+    --background: 198 100% 96%; /* Sky blue background */
+    --foreground: 220 13% 18%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 13% 18%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 13% 18%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Mario red */
+    --primary: 0 84% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Luigi green */
+    --secondary: 142 76% 36%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
+    /* Soft gray */
+    --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Golden coin color */
+    --accent: 45 93% 58%;
+    --accent-foreground: 220 13% 18%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 0 84% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Mario gradients */
+    --gradient-mario: linear-gradient(135deg, hsl(0 84% 60%) 0%, hsl(0 74% 50%) 100%);
+    --gradient-luigi: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(142 66% 26%) 100%);
+    --gradient-coin: linear-gradient(135deg, hsl(45 93% 58%) 0%, hsl(38 90% 50%) 100%);
+    --gradient-sky: linear-gradient(180deg, hsl(198 100% 96%) 0%, hsl(200 100% 88%) 100%);
+    
+    /* Block colors */
+    --block-brick: 25 85% 45%;
+    --block-question: 45 93% 58%;
+    --block-pipe: 142 76% 36%;
+
+    /* Shadows */
+    --shadow-mario: 0 4px 20px -2px hsl(0 84% 60% / 0.3);
+    --shadow-block: 0 8px 0 hsl(220 13% 18%);
+    --shadow-floating: 0 10px 25px -5px hsl(220 13% 18% / 0.2);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Dark mode Mario theme - Underground/Castle theme */
+    --background: 240 8% 12%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 240 8% 16%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 240 8% 16%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 0 84% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 142 76% 36%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 240 8% 20%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 45 93% 58%;
+    --accent-foreground: 240 8% 12%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 240 8% 24%;
+    --input: 240 8% 24%;
+    --ring: 0 84% 60%;
+
+    /* Dark mode gradients */
+    --gradient-mario: linear-gradient(135deg, hsl(0 84% 60%) 0%, hsl(0 74% 50%) 100%);
+    --gradient-luigi: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(142 66% 26%) 100%);
+    --gradient-coin: linear-gradient(135deg, hsl(45 93% 58%) 0%, hsl(38 90% 50%) 100%);
+    --gradient-sky: linear-gradient(180deg, hsl(240 8% 12%) 0%, hsl(240 8% 8%) 100%);
+    
+    --block-brick: 25 85% 35%;
+    --block-question: 45 93% 48%;
+    --block-pipe: 142 76% 26%;
+
+    --shadow-mario: 0 4px 20px -2px hsl(0 84% 60% / 0.4);
+    --shadow-block: 0 8px 0 hsl(240 8% 8%);
+    --shadow-floating: 0 10px 25px -5px hsl(240 8% 8% / 0.3);
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -100,6 +130,58 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(198 100% 88%) 100%);
+    min-height: 100vh;
   }
+}
+
+/* Mario-style custom components */
+@layer components {
+  .mario-button {
+    @apply relative px-6 py-3 bg-primary text-primary-foreground rounded-lg font-bold text-lg
+           transform transition-all duration-150 ease-out
+           hover:scale-105 hover:brightness-110
+           active:scale-95 active:translate-y-1;
+    box-shadow: 0 6px 0 hsl(0 74% 40%), var(--shadow-mario);
+  }
+  
+  .mario-button:active {
+    box-shadow: 0 2px 0 hsl(0 74% 40%), var(--shadow-mario);
+  }
+
+  .block-card {
+    @apply relative bg-card rounded-xl p-6 transition-all duration-300
+           hover:scale-[1.02] hover:rotate-1;
+    box-shadow: var(--shadow-floating);
+  }
+
+  .coin-shine {
+    @apply relative overflow-hidden;
+  }
+  
+  .coin-shine::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent
+           transform -skew-x-12 -translate-x-full transition-transform duration-700;
+  }
+  
+  .coin-shine:hover::before {
+    @apply translate-x-full;
+  }
+
+  .floating-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .pipe-entrance {
+    @apply relative overflow-hidden rounded-t-full;
+    background: linear-gradient(180deg, hsl(var(--block-pipe)) 0%, hsl(142 66% 26%) 100%);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(1deg); }
+  66% { transform: translateY(-5px) rotate(-1deg); }
 }
