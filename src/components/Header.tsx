@@ -1,17 +1,33 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Coins, Star, Trophy, Gamepad2, Menu, X } from "lucide-react";
+import { Coins, Star, Trophy, Gamepad2, Menu, X, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate('/')}>
             <div className="relative">
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center floating-animation">
                 <Gamepad2 className="w-6 h-6 text-primary-foreground" />
@@ -46,7 +62,7 @@ export const Header = () => {
             </Button>
           </nav>
 
-          {/* Stats & Actions */}
+          {/* Stats & User Actions */}
           <div className="hidden md:flex items-center space-x-4">
             <Badge variant="secondary" className="coin-shine">
               <Coins className="w-4 h-4 mr-1" />
@@ -60,6 +76,40 @@ export const Header = () => {
               <Trophy className="w-4 h-4 mr-1" />
               排行榜
             </Badge>
+
+            {/* User Menu */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <User className="w-4 h-4 mr-2" />
+                    {user.user_metadata?.username || user.email?.split('@')[0] || '用户'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    个人资料
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/favorites')}>
+                    我的收藏
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    退出登录
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/auth')}
+              >
+                <User className="w-4 h-4 mr-2" />
+                登录/注册
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -88,6 +138,41 @@ export const Header = () => {
             <Button variant="ghost" className="w-full justify-start">
               关于我们
             </Button>
+            
+            {/* Mobile User Actions */}
+            {user ? (
+              <>
+                <div className="pt-2 border-t">
+                  <p className="text-sm text-gray-600 mb-2 px-3">
+                    欢迎, {user.user_metadata?.username || user.email?.split('@')[0]}
+                  </p>
+                  <Button variant="ghost" className="w-full justify-start">
+                    个人资料
+                  </Button>
+                  <Button variant="ghost" className="w-full justify-start">
+                    我的收藏
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-red-600"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    退出登录
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => navigate('/auth')}
+              >
+                <User className="w-4 h-4 mr-2" />
+                登录/注册
+              </Button>
+            )}
+            
             <div className="flex items-center space-x-2 pt-2">
               <Badge variant="secondary" className="coin-shine">
                 <Coins className="w-4 h-4 mr-1" />

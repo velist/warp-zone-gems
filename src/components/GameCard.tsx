@@ -2,6 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, Download, Eye, Clock, Tag } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface GameCardProps {
   game: {
@@ -17,13 +18,19 @@ interface GameCardProps {
 }
 
 export const GameCard = ({ game }: GameCardProps) => {
+  const navigate = useNavigate();
+  
   const formatDate = (dateString?: string) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("zh-CN");
   };
 
+  const handleCardClick = () => {
+    navigate(`/game/${game.id}`);
+  };
+
   return (
-    <Card className="block-card group cursor-pointer overflow-hidden">
+    <Card className="block-card group cursor-pointer overflow-hidden" onClick={handleCardClick}>
       <CardHeader className="p-0">
         <div className="relative overflow-hidden rounded-t-xl h-48 bg-gradient-to-br from-primary/20 to-secondary/20">
           {game.cover_image ? (
@@ -51,11 +58,26 @@ export const GameCard = ({ game }: GameCardProps) => {
 
           {/* Action Buttons Overlay */}
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-3">
-            <Button size="sm" variant="secondary" className="mario-button transform scale-90">
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="mario-button transform scale-90"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/game/${game.id}`);
+              }}
+            >
               <Eye className="w-4 h-4 mr-1" />
               预览
             </Button>
-            <Button size="sm" className="mario-button transform scale-90">
+            <Button 
+              size="sm" 
+              className="mario-button transform scale-90"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Handle download action
+              }}
+            >
               <Download className="w-4 h-4 mr-1" />
               下载
             </Button>
