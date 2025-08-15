@@ -8,6 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Edit, Trash2, Eye, Calendar, User } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { BatchImportDialog } from '@/components/BatchImportDialog';
+import { GameInfo } from '@/lib/aiContentProcessor';
+import { useToast } from '@/hooks/use-toast';
 
 interface Game {
   id: string;
@@ -26,12 +29,33 @@ const PostManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
+  const [adminSettings, setAdminSettings] = useState<{ silicon_flow_api_key?: string; preferred_ai_model?: string } | null>(null);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchPosts();
+    fetchAdminSettings();
   }, []);
+
+  const fetchAdminSettings = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('admin_settings')
+        .select('silicon_flow_api_key, preferred_ai_model')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!error && data) {
+        setAdminSettings(data);
+      }
+    } catch (err) {
+      console.warn('Failed to fetch admin settings:', err);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -77,6 +101,53 @@ const PostManagement = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
+  };
+
+  // 处理批量导入完成
+  const handleBatchImportComplete = async (games: GameInfo[]) => {
+    try {
+      const insertPromises = games.map(async (game) => {
+        const gameData = {
+          title: game.title,
+          description: game.description || '',
+          content: game.description || '',
+          category: game.category || '平台跳跃',
+          tags: game.tags || [],
+          author: user?.email || 'AI导入',
+          cover_image: game.coverImage || null,
+          published_at: new Date().toISOString(),
+        };
+
+        return supabase.from('games').insert(gameData);
+      });
+
+      const results = await Promise.allSettled(insertPromises);
+      const successful = results.filter(result => result.status === 'fulfilled').length;
+      const failed = results.filter(result => result.status === 'rejected').length;
+
+      if (successful > 0) {
+        toast({
+          title: "批量导入完成",
+          description: `成功导入 ${successful} 个游戏${failed > 0 ? `，失败 ${failed} 个` : ''}`,
+        });
+        
+        // 刷新列表
+        fetchPosts();
+      } else {
+        toast({
+          title: "导入失败",
+          description: "所有游戏导入都失败了，请检查数据格式",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Batch import error:', error);
+      toast({
+        title: "导入错误",
+        description: "批量导入过程中发生错误",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredPosts = posts.filter(post =>
@@ -126,6 +197,16 @@ const PostManagement = () => {
               <Plus className="h-4 w-4 mr-2" />
               创建新内容
             </Button>
+            
+            {/* 批量导入按钮 */}
+            {adminSettings?.silicon_flow_api_key && (
+              <BatchImportDialog
+                apiKey={adminSettings.silicon_flow_api_key}
+                model={adminSettings.preferred_ai_model || 'Qwen/Qwen2.5-7B-Instruct'}
+                onImportComplete={handleBatchImportComplete}
+              />
+            )}
+            
             <div className="relative">
               <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
               <Input

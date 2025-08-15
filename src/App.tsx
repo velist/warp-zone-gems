@@ -6,6 +6,11 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import GameDetail from "./pages/GameDetail";
+import Profile from "./pages/Profile";
+import Favorites from "./pages/Favorites";
+import Categories from "./pages/Categories";
+import About from "./pages/About";
+import Leaderboard from "./pages/Leaderboard";
 import AdminLogin from "./components/AdminLogin";
 import AdminRegister from "./components/AdminRegister";
 import DevAdminSetup from "./components/DevAdminSetup";
@@ -15,6 +20,7 @@ import PostEditor from "./pages/PostEditor";
 import AdminSettings from "./pages/AdminSettings";
 import UserAuth from "./components/UserAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { PerformanceMonitor } from "./components/PerformanceMonitor";
 import { AuthProvider } from "./hooks/useAuth";
 import "./App.css";
 
@@ -30,6 +36,11 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/game/:id" element={<GameDetail />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/auth" element={<UserAuth />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/register" element={<AdminRegister />} />
@@ -79,6 +90,8 @@ const App = () => (
           </Routes>
         </AuthProvider>
       </HashRouter>
+      {/* 性能监控组件 */}
+      <PerformanceMonitor />
     </TooltipProvider>
   </QueryClientProvider>
 );

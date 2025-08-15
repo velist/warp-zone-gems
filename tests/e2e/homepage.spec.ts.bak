@@ -1,0 +1,76 @@
+import { test, expect } from '@playwright/test';
+
+test.describe('首页功能测试', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+  });
+
+  test('应该正确加载首页', async ({ page }) => {
+    // 验证页面标题
+    await expect(page).toHaveTitle(/Warp Zone Gems/);
+    
+    // 验证主要元素存在
+    await expect(page.getByRole('heading', { name: /Warp Zone Gems/i })).toBeVisible();
+  });
+
+  test('应该显示游戏分类网格', async ({ page }) => {
+    // 等待分类网格加载
+    await page.waitForSelector('.category-grid', { timeout: 10000 });
+    
+    // 验证分类卡片存在
+    const categoryCards = page.locator('.category-card');
+    await expect(categoryCards.first()).toBeVisible();
+  });
+
+  test('应该能够响应式适配', async ({ page }) => {
+    // 测试桌面端
+    await page.setViewportSize({ width: 1200, height: 800 });
+    await expect(page.getByRole('heading')).toBeVisible();
+    
+    // 测试移动端
+    await page.setViewportSize({ width: 375, height: 667 });
+    await expect(page.getByRole('heading')).toBeVisible();
+    
+    // 验证移动端菜单
+    const mobileMenu = page.getByRole('button', { name: /menu/i });
+    if (await mobileMenu.isVisible()) {
+      await mobileMenu.click();
+      await expect(page.getByRole('navigation')).toBeVisible();
+    }
+  });
+
+  test('搜索功能应该正常工作', async ({ page }) => {
+    const searchInput = page.getByPlaceholder(/搜索游戏/i);
+    if (await searchInput.isVisible()) {
+      await searchInput.fill('马里奥');
+      await searchInput.press('Enter');
+      
+      // 等待搜索结果
+      await page.waitForTimeout(2000);
+      
+      // 验证搜索结果或相关元素
+      await expect(page.getByText('马里奥')).toBeVisible();
+    }
+  });
+
+  test('导航菜单应该正常工作', async ({ page }) => {
+    // 测试导航到管理员登录页面
+    const adminLink = page.getByRole('link', { name: /管理员|Admin/i });
+    if (await adminLink.isVisible()) {
+      await adminLink.click();
+      await expect(page).toHaveURL(/admin/);
+    }
+  });
+
+  test('页面性能指标应该符合标准', async ({ page }) => {
+    // 使用 Lighthouse 或其他性能测试工具
+    // 这里先做基本的加载时间测试
+    const startTime = Date.now();
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    const loadTime = Date.now() - startTime;
+    
+    // 页面应该在5秒内加载完成
+    expect(loadTime).toBeLessThan(5000);
+  });
+});

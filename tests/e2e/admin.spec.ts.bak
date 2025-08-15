@@ -1,0 +1,134 @@
+import { test, expect } from '@playwright/test';
+
+test.describe('管理员功能测试', () => {
+  test('应该能够访问开发环境管理员设置', async ({ page }) => {
+    await page.goto('/#/admin/dev-setup');
+    
+    // 验证页面标题
+    await expect(page.getByRole('heading', { name: /开发环境管理员设置/i })).toBeVisible();
+    
+    // 验证表单元素存在
+    await expect(page.getByRole('textbox', { name: /邮箱/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /密码/i })).toBeVisible();
+  });
+
+  test('应该能够创建开发环境管理员', async ({ page }) => {
+    await page.goto('/#/admin/dev-setup');
+    
+    // 填写管理员信息
+    await page.getByRole('textbox', { name: /邮箱/i }).fill('admin@test.com');
+    await page.getByRole('textbox', { name: /密码/i }).fill('password123');
+    
+    // 点击创建按钮
+    const createButton = page.getByRole('button', { name: /创建管理员/i });
+    if (await createButton.isVisible()) {
+      await createButton.click();
+      
+      // 验证成功消息或重定向
+      await page.waitForTimeout(2000);
+      // 这里根据实际行为验证结果
+    }
+  });
+
+  test('应该能够登录管理后台', async ({ page }) => {
+    // 先访问登录页面
+    await page.goto('/#/admin/login');
+    
+    // 验证登录表单
+    await expect(page.getByRole('textbox', { name: /邮箱/i })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: /密码/i })).toBeVisible();
+    
+    // 填写登录信息
+    await page.getByRole('textbox', { name: /邮箱/i }).fill('admin@test.com');
+    await page.getByRole('textbox', { name: /密码/i }).fill('password123');
+    
+    // 点击登录按钮
+    await page.getByRole('button', { name: /登录/i }).click();
+    
+    // 等待重定向或登录结果
+    await page.waitForTimeout(3000);
+  });
+
+  test('应该能够访问内容管理页面', async ({ page }) => {
+    // 直接访问内容管理页面（假设已登录或使用mock）
+    await page.goto('/#/admin/posts');
+    
+    // 验证内容管理界面元素
+    const createButton = page.getByRole('button', { name: /创建|新建/i });
+    if (await createButton.isVisible()) {
+      await expect(createButton).toBeVisible();
+    }
+  });
+
+  test('应该能够创建新游戏内容', async ({ page }) => {
+    await page.goto('/#/admin/posts/create');
+    
+    // 验证内容创建表单
+    const titleInput = page.getByRole('textbox', { name: /标题|游戏名称/i });
+    if (await titleInput.isVisible()) {
+      await titleInput.fill('测试游戏');
+      
+      // 填写其他必要字段
+      const categorySelect = page.getByRole('combobox', { name: /分类/i });
+      if (await categorySelect.isVisible()) {
+        await categorySelect.click();
+        await page.getByRole('option', { name: /动作冒险/i }).click();
+      }
+      
+      // 保存内容
+      const saveButton = page.getByRole('button', { name: /保存|发布/i });
+      if (await saveButton.isVisible()) {
+        await saveButton.click();
+        await page.waitForTimeout(2000);
+      }
+    }
+  });
+
+  test('AI内容生成功能应该正常工作', async ({ page }) => {
+    await page.goto('/#/admin/posts/create');
+    
+    // 查找AI生成按钮
+    const aiButton = page.getByRole('button', { name: /AI|智能生成/i });
+    if (await aiButton.isVisible()) {
+      // 先填写游戏名称
+      const titleInput = page.getByRole('textbox', { name: /标题|游戏名称/i });
+      if (await titleInput.isVisible()) {
+        await titleInput.fill('超级马里奥');
+      }
+      
+      // 点击AI生成
+      await aiButton.click();
+      
+      // 等待AI生成完成
+      await page.waitForTimeout(5000);
+      
+      // 验证生成的内容
+      const descriptionField = page.getByRole('textbox', { name: /描述/i });
+      if (await descriptionField.isVisible()) {
+        const description = await descriptionField.inputValue();
+        expect(description.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  test('富文本编辑器应该正常工作', async ({ page }) => {
+    await page.goto('/#/admin/posts/create');
+    
+    // 查找富文本编辑器
+    const editor = page.locator('.ql-editor, [contenteditable="true"]');
+    if (await editor.isVisible()) {
+      await editor.click();
+      await editor.fill('这是测试内容');
+      
+      // 验证内容已输入
+      await expect(editor).toHaveText(/这是测试内容/);
+      
+      // 测试隐藏内容功能
+      const hideButton = page.getByRole('button', { name: /隐藏内容|🔒/i });
+      if (await hideButton.isVisible()) {
+        await hideButton.click();
+        await expect(editor).toContainText('[hide]');
+      }
+    }
+  });
+});

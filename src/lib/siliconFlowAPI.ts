@@ -196,5 +196,49 @@ export const AVAILABLE_MODELS = [
   }
 ];
 
+// 通用内容生成函数
+export async function generateContent(
+  prompt: string,
+  apiKey: string,
+  model: string = 'Qwen/Qwen2.5-7B-Instruct'
+): Promise<string> {
+  const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      max_tokens: 2000,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+  }
+
+  const result = await response.json();
+  const content = result.choices[0]?.message?.content;
+
+  if (!content) {
+    throw new Error('AI返回内容为空');
+  }
+
+  return content;
+}
+
+// 导出API对象
+export const siliconFlowAPI = {
+  generateContent,
+};
+
 export { SiliconFlowAPI };
 export type { SiliconFlowConfig, GameGenerationRequest, GameGenerationResponse };
