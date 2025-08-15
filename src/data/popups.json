@@ -1,0 +1,12 @@
+[
+  {
+    "id": "popup-welcome",
+    "title": "欢迎访问 Warp Zone Gems",
+    "type": "welcome",
+    "content": "欢迎来到马里奥主题游戏资源平台！这里有最全的马里奥系列游戏资源，快来探索吧！",
+    "trigger": "delay",
+    "delay": 5,
+    "status": "inactive",
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+]

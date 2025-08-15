@@ -42,19 +42,51 @@ const GameDetail = () => {
   const fetchGame = async (gameId: string) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('games')
-        .select('*')
-        .eq('id', gameId)
-        .single();
-
-      if (error) {
-        setError(error.message);
+      
+      // 检测环境并选择数据源
+      const isProduction = window.location.hostname === 'velist.github.io' || 
+                          window.location.protocol === 'https:' ||
+                          process.env.NODE_ENV === 'production';
+      
+      let gamesData;
+      
+      if (isProduction) {
+        // 生产环境：直接读取静态JSON文件
+        console.log('Production mode: fetching games from static JSON');
+        const response = await fetch('/data/games.json');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch games: ${response.status}`);
+        }
+        gamesData = await response.json();
       } else {
-        setGame(data);
+        // 开发环境：使用本地管理后台API
+        console.log('Development mode: fetching games from local API');
+        const response = await fetch('http://localhost:3007/api/data/games');
+        const result = await response.json();
+
+        if (!result.success) {
+          setError(result.error || '获取游戏数据失败');
+          return;
+        }
+        gamesData = result.data;
+      }
+
+      // 查找指定ID的游戏
+      const foundGame = gamesData?.find((game: Game) => game.id === gameId);
+      
+      if (!foundGame) {
+        setError('游戏不存在');
+      } else if (foundGame.status !== 'published') {
+        setError('游戏未发布或已下架');
+      } else {
+        setGame(foundGame);
       }
     } catch (err) {
-      setError('获取游戏详情失败');
+      console.error('Fetch game error:', err);
+      const errorMessage = isProduction ? 
+        '获取游戏详情失败' : 
+        '获取游戏详情失败，请确保管理后台服务正在运行';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -195,11 +227,11 @@ const GameDetail = () => {
                 )}
                 <div className="flex items-center">
                   <Eye className="w-4 h-4 mr-2" />
-                  浏览: {Math.floor(Math.random() * 1000) + 100}
+                  浏览: {game.view_count || 0}
                 </div>
                 <div className="flex items-center">
                   <Download className="w-4 h-4 mr-2" />
-                  下载: {Math.floor(Math.random() * 500) + 50}
+                  下载: {game.download_count || 0}
                 </div>
               </div>
 

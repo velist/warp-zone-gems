@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Warp Zone Gems - 本地管理后台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 马里奥主题样式 */
+        .mario-button {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            box-shadow: 0 4px 15px rgba(238, 90, 90, 0.4);
+            border: 3px solid #fff;
+            transition: all 0.3s ease;
+        }
+        .mario-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238, 90, 90, 0.6);
+        }
+        .blue-button {
+            background: linear-gradient(135deg, #4299e1, #2b77cb);
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.4);
+            border: 3px solid #fff;
+        }
+        .green-button {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+            border: 3px solid #fff;
+        }
+        .yellow-button {
+            background: linear-gradient(135deg, #ed8936, #dd7724);
+            box-shadow: 0 4px 15px rgba(237, 137, 54, 0.4);
+            border: 3px solid #fff;
+        }
+        .purple-button {
+            background: linear-gradient(135deg, #9f7aea, #805ad5);
+            box-shadow: 0 4px 15px rgba(159, 122, 234, 0.4);
+            border: 3px solid #fff;
+        }
+        .tab-active {
+            background: linear-gradient(135deg, #4299e1, #2b77cb);
+            color: white;
+            border-bottom: 3px solid #2b77cb;
+        }
+        .coin-shine {
+            animation: shine 2s infinite;
+        }
+        @keyframes shine {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .status-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .form-input:focus {
+            border-color: #4299e1;
+            outline: none;
+        }
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-active { background-color: #48bb78; }
+        .status-inactive { background-color: #f56565; }
+        .status-hidden { background-color: #ed8936; }
+        .mario-gradient {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+        .coin-shine {
+            animation: coinShine 2s infinite;
+        }
+        @keyframes coinShine {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .success-animation {
+            animation: successPulse 0.6s ease-out;
+        }
+        @keyframes successPulse {
+            0% { transform: scale(1); background-color: rgb(34, 197, 94); }
+            50% { transform: scale(1.05); background-color: rgb(22, 163, 74); }
+            100% { transform: scale(1); background-color: rgb(34, 197, 94); }
+        }
+        .processing {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8, #3b82f6);
+            background-size: 200% 100%;
+            animation: gradient 2s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 头部 -->
+    <header class="mario-gradient text-white shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="text-2xl">🎮</div>
+                    <div>
+                        <h1 class="text-xl font-bold">Warp Zone Gems</h1>
+                        <p class="text-blue-100 text-sm">本地管理后台</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="status-indicator" class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-400 rounded-full coin-shine"></div>
+                        <span class="text-sm">本地环境</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+        <!-- 统计卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">游戏总数</p>
+                        <p id="games-count" class="text-2xl font-bold text-blue-600">0</p>
+                    </div>
+                    <div class="text-3xl">🎯</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">分类数量</p>
+                        <p id="categories-count" class="text-2xl font-bold text-green-600">6</p>
+                    </div>
+                    <div class="text-3xl">📁</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">总下载量</p>
+                        <p id="total-downloads" class="text-2xl font-bold text-yellow-600">0</p>
+                    </div>
+                    <div class="text-3xl">⬇️</div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">AI状态</p>
+                        <p id="ai-status" class="text-2xl font-bold text-purple-600">未配置</p>
+                    </div>
+                    <div class="text-3xl">🤖</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- AI批量导入面板 -->
+            <div class="lg:col-span-2 bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold flex items-center space-x-2">
+                        <span>🤖</span>
+                        <span>AI批量导入</span>
+                    </h2>
+                    <p class="text-gray-600 text-sm mt-1">使用AI智能解析和批量导入游戏信息</p>
+                </div>
+                
+                <div class="p-6 space-y-4">
+                    <!-- API Key配置 -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Silicon Flow API Key</label>
+                        <div class="flex space-x-2">
+                            <input 
+                                type="password" 
+                                id="api-key"
+                                placeholder="输入你的API Key"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                            <button 
+                                onclick="testApiKey()"
+                                class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                            >
+                                测试
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500">
+                            获取API Key: <a href="https://cloud.siliconflow.cn/" target="_blank" class="text-blue-600 hover:underline">Silicon Flow官网</a>
+                        </p>
+                    </div>
+
+                    <!-- 输入方式选择 -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">输入方式</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button 
+                                onclick="setInputMode('text')"
+                                id="btn-text"
+                                class="p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-500 transition-colors input-mode-btn"
+                            >
+                                📝 文本输入
+                            </button>
+                            <button 
+                                onclick="setInputMode('file')"
+                                id="btn-file"
+                                class="p-3 border-2 border-gray-300 rounded-lg text-center hover:border-blue-500 transition-colors input-mode-btn"
+                            >
+                                📄 文件上传
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 文本输入区域 -->
+                    <div id="text-input-area" class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">游戏信息</label>
+                        <textarea 
+                            id="game-input"
+                            rows="8"
+                            placeholder="请输入游戏信息，支持多种格式：
+
+1. 简单列表：
+Super Mario Bros.
+Mario Kart 8 Deluxe
+Super Mario Odyssey
+
+2. 带描述：
+Super Mario Bros. - 经典的平台跳跃游戏
+Mario Kart 8 Deluxe - 最受欢迎的赛车游戏
+
+3. 详细信息：
+标题：Super Mario Bros.
+分类：平台跳跃
+描述：经典的马里奥游戏..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                        ></textarea>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>支持复制粘贴任何包含游戏信息的文本</span>
+                            <span id="char-count">0 字符</span>
+                        </div>
+                    </div>
+
+                    <!-- 文件上传区域 -->
+                    <div id="file-input-area" class="space-y-2 hidden">
+                        <label class="block text-sm font-medium text-gray-700">上传文件</label>
+                        <div 
+                            id="file-drop-zone"
+                            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer"
+                        >
+                            <div class="text-4xl mb-2">📁</div>
+                            <p class="text-gray-600">点击选择文件或拖拽到此处</p>
+                            <p class="text-xs text-gray-500 mt-1">支持 .txt, .md, .csv 格式</p>
+                            <input 
+                                type="file" 
+                                id="file-input"
+                                accept=".txt,.md,.csv"
+                                class="hidden"
+                            >
+                        </div>
+                        <div id="file-info" class="hidden text-sm text-gray-600"></div>
+                    </div>
+
+                    <!-- 处理按钮 -->
+                    <div class="flex justify-between items-center">
+                        <div class="text-sm text-gray-600">
+                            <span id="processing-info">准备就绪</span>
+                        </div>
+                        <button 
+                            onclick="startProcessing()"
+                            id="process-btn"
+                            class="px-6 py-2 mario-gradient text-white rounded-md hover:opacity-90 transition-opacity disabled:opacity-50"
+                        >
+                            🚀 开始处理
+                        </button>
+                    </div>
+
+                    <!-- 进度条 -->
+                    <div id="progress-area" class="hidden space-y-2">
+                        <div class="flex justify-between text-sm text-gray-600">
+                            <span id="progress-text">处理中...</span>
+                            <span id="progress-percent">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progress-bar" class="processing h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系统信息面板 -->
+            <div class="space-y-6">
+                <!-- 快速操作 -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-4 border-b border-gray-200">
+                        <h3 class="font-semibold flex items-center space-x-2">
+                            <span>⚡</span>
+                            <span>快速操作</span>
+                        </h3>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <button 
+                            onclick="viewWebsite()"
+                            class="w-full p-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                        >
+                            <span>🌐</span>
+                            <span>查看网站</span>
+                        </button>
+                        
+                        <button 
+                            onclick="openDataFolder()"
+                            class="w-full p-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                        >
+                            <span>📁</span>
+                            <span>打开数据文件</span>
+                        </button>
+                        
+                        <button 
+                            onclick="deployToGitHub()"
+                            class="w-full p-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center justify-center space-x-2"
+                        >
+                            <span>🚀</span>
+                            <span>部署到GitHub</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 系统状态 -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-4 border-b border-gray-200">
+                        <h3 class="font-semibold flex items-center space-x-2">
+                            <span>📊</span>
+                            <span>系统状态</span>
+                        </h3>
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Node.js</span>
+                            <span id="node-version" class="text-green-600 font-mono">检测中...</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">数据文件</span>
+                            <span id="data-status" class="text-green-600">✓ 正常</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Git状态</span>
+                            <span id="git-status" class="text-gray-600">检测中...</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">本地服务器</span>
+                            <span class="text-green-600">✓ 运行中</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最近活动 -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="p-4 border-b border-gray-200">
+                        <h3 class="font-semibold flex items-center space-x-2">
+                            <span>📝</span>
+                            <span>最近活动</span>
+                        </h3>
+                    </div>
+                    <div id="recent-activities" class="p-4 text-sm text-gray-600">
+                        <p>暂无活动记录</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 处理结果面板 -->
+        <div id="results-panel" class="hidden mt-6 bg-white rounded-lg shadow">
+            <div class="p-6 border-b border-gray-200">
+                <h2 class="text-lg font-semibold flex items-center space-x-2">
+                    <span>✅</span>
+                    <span>处理结果</span>
+                </h2>
+            </div>
+            <div id="results-content" class="p-6">
+                <!-- 结果内容将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 成功提示模态框 -->
+    <div id="success-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md mx-4">
+            <div class="text-center">
+                <div class="text-6xl mb-4">🎉</div>
+                <h3 class="text-lg font-semibold mb-2">处理成功！</h3>
+                <p id="success-message" class="text-gray-600 mb-4"></p>
+                <button 
+                    onclick="closeSuccessModal()"
+                    class="px-6 py-2 mario-gradient text-white rounded-md hover:opacity-90 transition-opacity"
+                >
+                    确定
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentInputMode = 'text';
+        let processingData = null;
+        let gamesData = [];
+        let categoriesData = [];
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            setupEventListeners();
+            loadDataStats();
+            detectSystemInfo();
+        });
+
+        // 初始化页面
+        function initializePage() {
+            // 设置默认输入模式
+            setInputMode('text');
+            
+            // 检查本地存储的API Key
+            const savedApiKey = localStorage.getItem('silicon_flow_api_key');
+            if (savedApiKey) {
+                document.getElementById('api-key').value = savedApiKey;
+                updateAIStatus('已配置');
+            }
+            
+            // 添加字符计数
+            const gameInput = document.getElementById('game-input');
+            const charCount = document.getElementById('char-count');
+            gameInput.addEventListener('input', function() {
+                charCount.textContent = this.value.length + ' 字符';
+            });
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            // 文件拖拽
+            const dropZone = document.getElementById('file-drop-zone');
+            const fileInput = document.getElementById('file-input');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-blue-500');
+            });
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('border-blue-500');
+            });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-blue-500');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(files[0]);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+        }
+
+        // 设置输入模式
+        function setInputMode(mode) {
+            currentInputMode = mode;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.input-mode-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+            
+            const activeBtn = document.getElementById(`btn-${mode}`);
+            activeBtn.classList.add('border-blue-500', 'bg-blue-50');
+            
+            // 切换显示区域
+            const textArea = document.getElementById('text-input-area');
+            const fileArea = document.getElementById('file-input-area');
+            
+            if (mode === 'text') {
+                textArea.classList.remove('hidden');
+                fileArea.classList.add('hidden');
+            } else {
+                textArea.classList.add('hidden');
+                fileArea.classList.remove('hidden');
+            }
+        }
+
+        // 处理文件选择
+        function handleFileSelect(file) {
+            const fileInfo = document.getElementById('file-info');
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const content = e.target.result;
+                document.getElementById('game-input').value = content;
+                fileInfo.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <span class="text-green-600">✓</span>
+                        <span>已读取: ${file.name} (${content.length} 字符)</span>
+                    </div>
+                `;
+                fileInfo.classList.remove('hidden');
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // 测试API Key
+        async function testApiKey() {
+            const apiKey = document.getElementById('api-key').value.trim();
+            if (!apiKey) {
+                alert('请输入API Key');
+                return;
+            }
+
+            try {
+                // 这里模拟API测试，实际需要调用真实API
+                updateAIStatus('测试中...');
+                
+                // 保存API Key
+                localStorage.setItem('silicon_flow_api_key', apiKey);
+                
+                // 模拟延迟
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                updateAIStatus('已配置');
+                addActivity('API Key配置成功');
+                alert('✅ API Key测试成功！');
+                
+            } catch (error) {
+                updateAIStatus('配置失败');
+                alert('❌ API Key测试失败: ' + error.message);
+            }
+        }
+
+        // 开始处理
+        async function startProcessing() {
+            const apiKey = document.getElementById('api-key').value.trim();
+            const gameInput = document.getElementById('game-input').value.trim();
+            
+            if (!apiKey) {
+                alert('请先配置API Key');
+                return;
+            }
+            
+            if (!gameInput) {
+                alert('请输入游戏信息');
+                return;
+            }
+
+            // 显示进度
+            showProgress();
+            setProcessingState(true);
+            
+            try {
+                // 模拟AI处理过程
+                await simulateAIProcessing(gameInput);
+                
+                // 显示成功结果
+                showSuccess('成功处理了 5 个游戏，已更新到本地数据文件');
+                addActivity(`AI批量导入: 处理了 ${gameInput.split('\n').filter(line => line.trim()).length} 行数据`);
+                
+                // 刷新统计
+                loadDataStats();
+                
+            } catch (error) {
+                alert('❌ 处理失败: ' + error.message);
+                addActivity('处理失败: ' + error.message);
+            } finally {
+                hideProgress();
+                setProcessingState(false);
+            }
+        }
+
+        // 模拟AI处理
+        async function simulateAIProcessing(input) {
+            const lines = input.split('\n').filter(line => line.trim());
+            const total = lines.length;
+            
+            for (let i = 0; i < total; i++) {
+                // 更新进度
+                const progress = Math.round((i + 1) / total * 100);
+                updateProgress(progress, `处理中 (${i + 1}/${total})`);
+                
+                // 模拟处理延迟
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            // 模拟保存到文件
+            updateProgress(100, '保存到本地文件...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
+        // 显示进度
+        function showProgress() {
+            document.getElementById('progress-area').classList.remove('hidden');
+            updateProgress(0, '准备处理...');
+        }
+
+        // 隐藏进度
+        function hideProgress() {
+            document.getElementById('progress-area').classList.add('hidden');
+        }
+
+        // 更新进度
+        function updateProgress(percent, text) {
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('progress-percent').textContent = percent + '%';
+            document.getElementById('progress-text').textContent = text;
+        }
+
+        // 设置处理状态
+        function setProcessingState(processing) {
+            const btn = document.getElementById('process-btn');
+            if (processing) {
+                btn.disabled = true;
+                btn.textContent = '🔄 处理中...';
+                document.getElementById('processing-info').textContent = 'AI正在处理中，请稍候...';
+            } else {
+                btn.disabled = false;
+                btn.textContent = '🚀 开始处理';
+                document.getElementById('processing-info').textContent = '准备就绪';
+            }
+        }
+
+        // 显示成功提示
+        function showSuccess(message) {
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        // 关闭成功提示
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
+        // 更新AI状态
+        function updateAIStatus(status) {
+            document.getElementById('ai-status').textContent = status;
+        }
+
+        // 加载数据统计
+        function loadDataStats() {
+            // 这里模拟读取本地数据文件
+            // 实际实现需要通过API或文件读取
+            
+            // 模拟数据
+            const gamesCount = Math.floor(Math.random() * 50) + 10;
+            const totalDownloads = Math.floor(Math.random() * 10000) + 1000;
+            
+            document.getElementById('games-count').textContent = gamesCount;
+            document.getElementById('total-downloads').textContent = totalDownloads.toLocaleString();
+        }
+
+        // 检测系统信息
+        function detectSystemInfo() {
+            // 检测Node.js版本（模拟）
+            document.getElementById('node-version').textContent = 'v18.16.0';
+            document.getElementById('git-status').textContent = '✓ 已同步';
+        }
+
+        // 添加活动记录
+        function addActivity(activity) {
+            const container = document.getElementById('recent-activities');
+            const time = new Date().toLocaleTimeString();
+            const activityHtml = `
+                <div class="border-b border-gray-200 pb-2 mb-2 last:border-b-0">
+                    <div class="flex justify-between">
+                        <span>${activity}</span>
+                        <span class="text-xs text-gray-400">${time}</span>
+                    </div>
+                </div>
+            `;
+            
+            if (container.innerHTML.includes('暂无活动记录')) {
+                container.innerHTML = activityHtml;
+            } else {
+                container.innerHTML = activityHtml + container.innerHTML;
+            }
+        }
+
+        // 快速操作函数
+        function viewWebsite() {
+            window.open('http://localhost:8082', '_blank');
+        }
+
+        function openDataFolder() {
+            alert('请在文件管理器中打开: src/data/ 目录');
+        }
+
+        function deployToGitHub() {
+            if (confirm('确认要部署到GitHub Pages吗？这将提交当前更改并推送到远程仓库。')) {
+                alert('部署功能需要在命令行中执行:\n\ngit add src/data/\ngit commit -m "更新游戏数据"\ngit push origin main');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "banner-welcome",
+    "title": "欢迎来到 Warp Zone Gems",
+    "imageUrl": "/placeholder.svg",
+    "linkUrl": "/",
+    "position": "top",
+    "order": 1,
+    "status": "active",
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+]

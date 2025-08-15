@@ -1,0 +1,24 @@
+{
+  "name": "warp-zone-gems-admin",
+  "version": "1.0.0",
+  "description": "Warp Zone Gems 本地管理后台",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs",
+    "dev": "node server.cjs",
+    "seo-generate": "node seo-generator.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "form-data": "^4.0.0"
+  },
+  "keywords": [
+    "mario",
+    "games",
+    "admin",
+    "management"
+  ],
+  "author": "Claude AI Assistant",
+  "license": "MIT"
+}

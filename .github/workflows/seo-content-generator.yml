@@ -1,0 +1,49 @@
+name: SEO Content Generator
+
+on:
+  schedule:
+    # 每天北京时间上午9点执行 (UTC时间1点)
+    - cron: '0 1 * * *'
+  workflow_dispatch: # 允许手动触发
+
+env:
+  SILICON_FLOW_API_KEY: ${{ secrets.SILICON_FLOW_API_KEY }}
+
+jobs:
+  generate-seo-content:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        cd admin
+        npm install
+        
+    - name: Generate SEO Content
+      run: |
+        cd admin
+        node seo-generator.js
+      env:
+        SILICON_FLOW_API_KEY: ${{ secrets.SILICON_FLOW_API_KEY }}
+        
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add src/data/games.json
+        git add src/data/seo-articles.json
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "🤖 自动生成SEO内容: $(date +'%Y-%m-%d')" -m "Generated with Claude Code" -m "Co-Authored-By: Claude <noreply@anthropic.com>"
+          git push
+        fi

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Render Function</title>
+</head>
+<body>
+    <div id="test"></div>
+    <script>
+        // 测试renderGameItem函数
+        function renderGameItem(game) {
+            const statusClass = game.status === 'published' ? 'published' : 'draft';
+            const statusText = game.status === 'published' ? '已发布' : '草稿';
+            const statusBadgeClass = game.status === 'published' ? 'status-published' : 'status-draft';
+            
+            // 创建占位符图片
+            const placeholderSvg = `data:image/svg+xml;base64,${btoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+                    <rect width="80" height="80" fill="#f3f4f6"/>
+                    <text x="40" y="35" font-family="Arial" font-size="12" fill="#6b7280" text-anchor="middle">🎮</text>
+                    <text x="40" y="50" font-family="Arial" font-size="8" fill="#6b7280" text-anchor="middle">封面图</text>
+                </svg>
+            `)}`;
+            
+            const errorSvg = `data:image/svg+xml;base64,${btoa(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+                    <rect width="80" height="80" fill="#f3f4f6"/>
+                    <text x="40" y="35" font-family="Arial" font-size="12" fill="#6b7280" text-anchor="middle">🎮</text>
+                    <text x="40" y="50" font-family="Arial" font-size="8" fill="#6b7280" text-anchor="middle">加载失败</text>
+                </svg>
+            `)}`;
+            
+            const imageUrl = game.cover_image && game.cover_image !== '/placeholder.svg' ? 
+                game.cover_image : placeholderSvg;
+            
+            return `
+                <div class="game-item ${statusClass}">
+                    <div class="flex items-start space-x-4">
+                        <img src="${imageUrl}" alt="${game.title}" 
+                             class="w-20 h-20 object-cover rounded-lg flex-shrink-0 bg-gray-100"
+                             onerror="this.src='${errorSvg}'">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-lg text-gray-900 truncate">${game.title}</h3>
+                                    <p class="text-sm text-gray-600 mb-2">${game.category}</p>
+                                    <p class="text-sm text-gray-500 line-clamp-2">${game.description || '暂无描述'}</p>
+                                </div>
+                                <span class="status-badge ${statusBadgeClass} ml-2">${statusText}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 测试数据
+        const testGame = {
+            id: "test",
+            title: "Test Game",
+            category: "测试",
+            description: "这是一个测试游戏",
+            status: "published",
+            cover_image: "/placeholder.svg"
+        };
+
+        try {
+            const html = renderGameItem(testGame);
+            document.getElementById('test').innerHTML = html;
+            console.log('渲染成功');
+        } catch (error) {
+            console.error('渲染失败:', error);
+            document.getElementById('test').innerHTML = '<p>渲染失败: ' + error.message + '</p>';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "floating-help",
+    "title": "需要帮助？",
+    "content": "有问题？点击这里获取帮助和支持！",
+    "position": "bottom-right",
+    "linkUrl": "#",
+    "icon": "❓",
+    "bgColor": "#4299e1",
+    "textColor": "#ffffff",
+    "status": "inactive",
+    "createdAt": "2024-01-01T00:00:00Z"
+  }
+]

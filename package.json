@@ -19,7 +19,11 @@
     "test:all": "npm run test:run && npm run test:e2e",
     "db:setup": "node scripts/setup-database.js",
     "db:migrate": "node migration/migrate.js",
-    "db:seed": "node scripts/seed-database.js"
+    "db:seed": "node scripts/seed-database.js",
+    "ai-import": "node scripts/ai-batch-import.js",
+    "setup-static-ai": "scripts/setup-static-ai.bat",
+    "admin": "cd admin && node server.cjs",
+    "admin:start": "admin/start.bat"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -61,6 +65,7 @@
     "date-fns": "^3.6.0",
     "dotenv": "^17.2.1",
     "embla-carousel-react": "^8.6.0",
+    "express": "^5.1.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",

@@ -1,0 +1,17 @@
+{
+  "siliconFlow": {
+    "apiKey": "sk-txfqdzbvtosxvaklqasfgyyzqxfblvqbrpujrnzeeggujwya",
+    "defaultModel": "Qwen/Qwen2.5-7B-Instruct",
+    "batchSize": 3,
+    "delayBetweenRequests": 1500
+  },
+  "server": {
+    "port": 3007,
+    "autoOpenBrowser": true
+  },
+  "app": {
+    "name": "Warp Zone Gems",
+    "version": "1.0.0",
+    "description": "马里奥主题游戏资源分享平台本地管理后台"
+  }
+}
