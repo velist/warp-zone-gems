@@ -858,6 +858,124 @@ app.post('/api/git/:action', async (req, res) => {
     }
 });
 
+// 发布网站API
+app.post('/api/publish-website', async (req, res) => {
+    const { message } = req.body;
+    const commitMessage = message || 'Auto-publish: Update content from admin panel';
+    
+    try {
+        // 1. 同步数据文件到public目录
+        console.log('🔄 同步数据文件到public目录...');
+        
+        // 确保public/data目录存在
+        const publicDataDir = path.join(DATA_PATHS.PROJECT_ROOT, 'public', 'data');
+        if (!fs.existsSync(publicDataDir)) {
+            fs.mkdirSync(publicDataDir, { recursive: true });
+        }
+        
+        // 复制数据文件
+        const sourceGames = DATA_PATHS.GAMES;
+        const sourceCategories = DATA_PATHS.CATEGORIES;
+        const targetGames = path.join(publicDataDir, 'games.json');
+        const targetCategories = path.join(publicDataDir, 'categories.json');
+        
+        fs.copyFileSync(sourceGames, targetGames);
+        fs.copyFileSync(sourceCategories, targetCategories);
+        
+        console.log('✅ 数据文件同步完成');
+        
+        // 2. Git操作：添加、提交、推送
+        console.log('🔄 提交更改到Git...');
+        
+        // 添加所有更改
+        await execAsync('git add .', { cwd: DATA_PATHS.PROJECT_ROOT });
+        
+        // 检查是否有更改需要提交
+        const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: DATA_PATHS.PROJECT_ROOT });
+        
+        if (statusOutput.trim() === '') {
+            return res.json({
+                success: true,
+                message: '没有新的更改需要发布',
+                data: {
+                    hasChanges: false,
+                    timestamp: new Date().toISOString()
+                }
+            });
+        }
+        
+        // 提交更改
+        const fullCommitMessage = `${commitMessage}
+
+🚀 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>`;
+        
+        await execAsync(`git commit -m "${fullCommitMessage}"`, { cwd: DATA_PATHS.PROJECT_ROOT });
+        console.log('✅ 更改已提交');
+        
+        // 推送到远程仓库
+        console.log('🔄 推送到GitHub...');
+        await execAsync('git push origin main', { cwd: DATA_PATHS.PROJECT_ROOT });
+        console.log('✅ 已推送到GitHub');
+        
+        res.json({
+            success: true,
+            message: '网站内容发布成功！GitHub Pages将在几分钟内自动更新。',
+            data: {
+                hasChanges: true,
+                timestamp: new Date().toISOString(),
+                commitMessage: fullCommitMessage.split('\n')[0]
+            }
+        });
+        
+    } catch (error) {
+        console.error('发布失败:', error);
+        res.status(500).json({
+            success: false,
+            error: `发布失败: ${error.message}`,
+            details: {
+                stderr: error.stderr,
+                stdout: error.stdout
+            }
+        });
+    }
+});
+
+// 获取发布状态
+app.get('/api/publish-status', async (req, res) => {
+    try {
+        // 获取最后一次提交信息
+        const { stdout: lastCommit } = await execAsync('git log -1 --format="%H|%ai|%s"', { cwd: DATA_PATHS.PROJECT_ROOT });
+        const [hash, date, subject] = lastCommit.trim().split('|');
+        
+        // 检查是否有未提交的更改
+        const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: DATA_PATHS.PROJECT_ROOT });
+        const hasUncommittedChanges = statusOutput.trim() !== '';
+        
+        res.json({
+            success: true,
+            data: {
+                lastCommit: {
+                    hash: hash.substring(0, 7),
+                    date: new Date(date).toLocaleString('zh-CN'),
+                    subject: subject
+                },
+                hasUncommittedChanges,
+                websiteUrl: 'https://velist.github.io/warp-zone-gems/',
+                status: hasUncommittedChanges ? 'pending' : 'published'
+            }
+        });
+        
+    } catch (error) {
+        console.error('获取发布状态失败:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // 启动服务器
 const server = app.listen(PORT, () => {
     console.log(`

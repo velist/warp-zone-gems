@@ -61,7 +61,7 @@ const GameDetail = () => {
       } else {
         // 开发环境：使用本地管理后台API
         console.log('Development mode: fetching games from local API');
-        const response = await fetch('http://localhost:3007/api/data/games');
+        const response = await fetch('http://localhost:3008/api/data/games');
         const result = await response.json();
 
         if (!result.success) {

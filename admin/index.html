@@ -189,6 +189,13 @@
                         <span class="w-2 h-2 rounded-full bg-yellow-500 inline-block mr-2"></span>
                         <span>检查API配置...</span>
                     </div>
+                    <div id="deploymentStatus" class="text-sm hidden">
+                        <span id="deploymentIndicator" class="w-2 h-2 rounded-full bg-gray-500 inline-block mr-2"></span>
+                        <span id="deploymentText">准备发布</span>
+                    </div>
+                    <button onclick="publishToWebsite()" class="green-button text-white px-4 py-2 rounded-lg font-bold">
+                        🚀 发布到网站
+                    </button>
                     <button onclick="refreshData()" class="mario-button text-white px-4 py-2 rounded-lg font-bold">
                         🔄 刷新
                     </button>
@@ -265,7 +272,7 @@
         <div class="bg-white rounded-b-lg shadow-lg p-6">
             <!-- 仪表板 -->
             <div id="dashboard-tab" class="tab-content">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="bg-gray-50 p-6 rounded-lg">
                         <h3 class="text-lg font-bold mb-4 flex items-center">
                             <span class="text-2xl mr-2">📈</span>
@@ -300,6 +307,29 @@
                             </button>
                             <button onclick="backupData()" class="w-full mario-button text-white px-4 py-3 rounded-lg font-bold">
                                 💾 备份数据
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4 flex items-center">
+                            <span class="text-2xl mr-2">🚀</span>
+                            网站发布
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span>发布状态</span>
+                                <span id="publishStatus" class="text-green-600 font-bold">准备就绪</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>最后发布</span>
+                                <span id="lastPublish" class="text-gray-600">-</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span>网站地址</span>
+                                <a href="https://velist.github.io/warp-zone-gems/" target="_blank" class="text-blue-600 hover:underline">查看网站</a>
+                            </div>
+                            <button onclick="publishToWebsite()" id="publishButton" class="w-full green-button text-white px-4 py-3 rounded-lg font-bold">
+                                🚀 发布到GitHub Pages
                             </button>
                         </div>
                     </div>
@@ -1029,6 +1059,7 @@
             initGameForm();
             initPopupForm();
             initFloatingForm();
+            loadPublishStatus();
         });
 
         // 加载配置
@@ -2038,8 +2069,8 @@
             // 构建前端游戏详情页URL
             let frontendBaseUrl = window.location.origin;
             
-            // 如果当前是管理后台端口3007，尝试访问常见的前端端口
-            if (window.location.port === '3007') {
+            // 如果当前是管理后台端口3008，尝试访问常见的前端端口
+            if (window.location.port === '3008') {
                 // 尝试常见的前端开发端口
                 const frontendPorts = ['8083', '5173', '3000', '8080', '8081', '8082'];
                 const protocol = window.location.protocol;
@@ -2505,6 +2536,112 @@
             } catch (error) {
                 console.error('切换悬浮元素状态失败:', error);
                 showToast('操作失败: ' + error.message, 'error');
+            }
+        }
+
+        // 加载发布状态
+        async function loadPublishStatus() {
+            try {
+                const response = await fetch('/api/publish-status');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    const publishStatus = document.getElementById('publishStatus');
+                    const lastPublish = document.getElementById('lastPublish');
+                    
+                    if (data.hasUncommittedChanges) {
+                        publishStatus.textContent = '有更改待发布';
+                        publishStatus.className = 'text-yellow-600 font-bold';
+                    } else {
+                        publishStatus.textContent = '已发布';
+                        publishStatus.className = 'text-green-600 font-bold';
+                    }
+                    
+                    lastPublish.textContent = data.lastCommit.date;
+                }
+            } catch (error) {
+                console.error('加载发布状态失败:', error);
+            }
+        }
+
+        // 发布到网站功能
+        async function publishToWebsite() {
+            const publishButton = document.getElementById('publishButton');
+            const publishStatus = document.getElementById('publishStatus');
+            const deploymentStatus = document.getElementById('deploymentStatus');
+            const deploymentText = document.getElementById('deploymentText');
+            const deploymentIndicator = document.getElementById('deploymentIndicator');
+            
+            try {
+                // 更新UI状态
+                publishButton.disabled = true;
+                publishButton.innerHTML = '🔄 发布中...';
+                publishStatus.textContent = '正在发布...';
+                publishStatus.className = 'text-yellow-600 font-bold';
+                
+                deploymentStatus.classList.remove('hidden');
+                deploymentIndicator.className = 'w-2 h-2 rounded-full bg-yellow-500 inline-block mr-2 animate-pulse';
+                deploymentText.textContent = '正在发布...';
+                
+                // 调用服务端发布API
+                const response = await fetch('/api/publish-website', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: 'Auto-publish from admin panel: Update games and content'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 发布成功
+                    publishStatus.textContent = '发布成功';
+                    publishStatus.className = 'text-green-600 font-bold';
+                    deploymentIndicator.className = 'w-2 h-2 rounded-full bg-green-500 inline-block mr-2';
+                    deploymentText.textContent = '发布成功';
+                    
+                    const now = new Date();
+                    document.getElementById('lastPublish').textContent = now.toLocaleString('zh-CN');
+                    
+                    showToast('网站内容已发布到GitHub Pages！', 'success');
+                    
+                    // 重新加载发布状态
+                    setTimeout(() => {
+                        loadPublishStatus();
+                    }, 2000);
+                    
+                    // 3秒后隐藏部署状态
+                    setTimeout(() => {
+                        deploymentStatus.classList.add('hidden');
+                    }, 5000);
+                    
+                } else {
+                    throw new Error(result.error || '发布失败');
+                }
+                
+            } catch (error) {
+                console.error('发布失败:', error);
+                publishStatus.textContent = '发布失败';
+                publishStatus.className = 'text-red-600 font-bold';
+                deploymentIndicator.className = 'w-2 h-2 rounded-full bg-red-500 inline-block mr-2';
+                deploymentText.textContent = '发布失败';
+                
+                showToast('发布失败: ' + error.message, 'error');
+                
+            } finally {
+                // 恢复按钮状态
+                publishButton.disabled = false;
+                publishButton.innerHTML = '🚀 发布到GitHub Pages';
+                
+                // 5秒后恢复状态
+                setTimeout(() => {
+                    publishStatus.textContent = '准备就绪';
+                    publishStatus.className = 'text-green-600 font-bold';
+                }, 3000);
             }
         }
 

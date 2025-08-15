@@ -6,7 +6,7 @@
     "delayBetweenRequests": 1500
   },
   "server": {
-    "port": 3007,
+    "port": 3008,
     "autoOpenBrowser": true
   },
   "app": {

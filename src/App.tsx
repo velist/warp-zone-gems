@@ -21,6 +21,8 @@ import AdminSettings from "./pages/AdminSettings";
 import UserAuth from "./components/UserAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { PerformanceMonitor } from "./components/PerformanceMonitor";
+import { PopupSystem } from "./components/PopupSystem";
+import { FloatingElements } from "./components/FloatingElements";
 import { AuthProvider } from "./hooks/useAuth";
 import "./App.css";
 
@@ -92,6 +94,10 @@ const App = () => (
       </HashRouter>
       {/* 性能监控组件 */}
       <PerformanceMonitor />
+      {/* 弹窗系统 */}
+      <PopupSystem />
+      {/* 悬浮元素 */}
+      <FloatingElements />
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -46,9 +46,9 @@ const getDataSource = () => {
     // 开发环境：使用本地管理后台API
     return {
       type: 'api',
-      baseUrl: 'http://localhost:3007/api',
-      gamesUrl: 'http://localhost:3007/api/data/games',
-      categoriesUrl: 'http://localhost:3007/api/data/categories'
+      baseUrl: 'http://localhost:3008/api',
+      gamesUrl: 'http://localhost:3008/api/data/games',
+      categoriesUrl: 'http://localhost:3008/api/data/categories'
     };
   }
 };

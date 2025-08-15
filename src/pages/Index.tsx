@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
+import { BannerSection } from "@/components/BannerSection";
 import { CategoryGrid } from "@/components/CategoryGrid";
 import { GameCard } from "@/components/GameCard";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
@@ -32,6 +33,9 @@ const Index = () => {
       
       {/* Hero Section */}
       <HeroSection />
+      
+      {/* Hero Banner Section */}
+      <BannerSection position="hero" className="mb-8" />
 
       {/* Categories Section */}
       {loading ? (
