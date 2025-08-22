@@ -26,22 +26,22 @@ const About = () => {
     {
       icon: Gamepad2,
       title: "丰富的游戏资源",
-      description: "收录了大量经典马里奥系列游戏，包括平台跳跃、竞速、益智等多种类型"
+      description: "收录了大量热门游戏，包括3A大作、赛车游戏、动作冒险、解谜益智等多种类型"
     },
     {
       icon: Download,
-      title: "免费下载",
-      description: "所有游戏资源完全免费，无需注册即可下载体验"
+      title: "免费体验",
+      description: "提供优质游戏资源和详细介绍，帮助玩家发现心仪的游戏"
     },
     {
       icon: Shield,
       title: "安全可靠",
-      description: "所有游戏文件经过严格检测，确保无病毒、无恶意代码"
+      description: "所有游戏信息经过严格审核，确保内容真实准确"
     },
     {
       icon: Zap,
       title: "快速更新",
-      description: "定期更新游戏资源，第一时间为您带来最新的马里奥游戏"
+      description: "定期更新游戏资源，第一时间为您带来最新最热门的游戏"
     },
     {
       icon: Users,
@@ -51,7 +51,7 @@ const About = () => {
     {
       icon: Globe,
       title: "多平台支持",
-      description: "支持多种游戏平台和设备，随时随地享受游戏乐趣"
+      description: "支持多种游戏平台和设备，覆盖PC、主机、移动平台"
     }
   ];
 
@@ -64,22 +64,22 @@ const About = () => {
 
   const teamMembers = [
     {
-      name: "马里奥",
+      name: "Alex",
       role: "首席游戏策划",
       avatar: "/placeholder.svg",
-      description: "负责游戏资源的收集和整理工作"
+      description: "负责游戏资源的收集、评估和分类工作"
     },
     {
-      name: "路易吉",
+      name: "Emma",
       role: "技术总监",
       avatar: "/placeholder.svg",
-      description: "负责网站的技术开发和维护"
+      description: "负责网站的技术开发、架构设计和系统维护"
     },
     {
-      name: "耀西",
+      name: "Ryan",
       role: "社区管理员",
       avatar: "/placeholder.svg",
-      description: "负责用户社区的管理和运营"
+      description: "负责用户社区的管理、运营和内容审核"
     }
   ];
 
@@ -106,8 +106,8 @@ const About = () => {
               关于我们
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Warp Zone Gems 是一个专注于马里奥系列游戏资源的分享平台，
-              致力于为全球马里奥游戏爱好者提供最优质的游戏体验。
+              Warp Zone Gems 是一个专注于精品游戏资源的分享平台，
+              致力于为全球游戏爱好者提供最优质的游戏发现和体验服务。
             </p>
           </div>
 
@@ -116,21 +116,21 @@ const About = () => {
             <CardHeader>
               <CardTitle className="text-2xl">我们的使命</CardTitle>
               <CardDescription>
-                让每个人都能轻松享受经典马里奥游戏的乐趣
+                让每个人都能轻松发现和享受优质游戏的乐趣
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground leading-relaxed">
-                自1985年《超级马里奥兄弟》首次发布以来，马里奥系列游戏就成为了无数玩家心中的经典。
-                我们深知这些游戏对于玩家的特殊意义，因此创建了 Warp Zone Gems 这个平台。
+                在游戏产业蓬勃发展的今天，每天都有大量新游戏发布，优质的经典游戏也在不断被重新发现。
+                我们深知玩家在面对海量游戏选择时的困扰，因此创建了 Warp Zone Gems 这个平台。
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                我们的目标是建立一个完整、安全、易用的马里奥游戏资源库，让新老玩家都能在这里找到自己喜爱的游戏，
-                重温童年回忆，或者发现新的游戏乐趣。
+                我们的目标是建立一个精选、安全、易用的游戏资源平台，涵盖3A大作、赛车竞速、动作冒险、解谜益智等各个类型，
+                让新老玩家都能在这里找到自己喜爱的游戏，重温经典回忆，或者发现新的游戏乐趣。
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                无论您是马里奥系列的忠实粉丝，还是刚刚接触这个经典系列的新玩家，
-                我们都希望能为您提供最好的游戏体验和服务。
+                无论您是重度游戏爱好者，还是休闲玩家，无论您偏爱哪种游戏类型，
+                我们都希望能为您提供最好的游戏发现体验和优质服务。
               </p>
             </CardContent>
           </Card>
@@ -244,7 +244,7 @@ const About = () => {
               
               <div className="mt-8 pt-6 border-t text-center">
                 <p className="text-muted-foreground">
-                  感谢您选择 Warp Zone Gems，让我们一起重温经典，创造美好的游戏回忆！
+                  感谢您选择 Warp Zone Gems，让我们一起发现精彩游戏，创造美好的游戏回忆！
                 </p>
               </div>
             </CardContent>

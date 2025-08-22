@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Coins, Star, Trophy, Gamepad2, Menu, X, User, LogOut, Search } from "lucide-react";
+import { Coins, Star, Trophy, Gamepad2, Menu, X, User, LogOut, Search, Home, Info } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { NavigationStore, NavigationItem } from "@/lib/navigationStore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,7 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [navigationItems, setNavigationItems] = useState<NavigationItem[]>([]);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const mobileMenuRef = useRef<HTMLDivElement>(null);
@@ -24,6 +26,12 @@ export const Header = () => {
     await signOut();
     navigate('/');
   };
+
+  // 加载导航配置
+  useEffect(() => {
+    const items = NavigationStore.getNavigationItems();
+    setNavigationItems(items);
+  }, []);
 
   // 监听滚动状态
   useEffect(() => {
@@ -72,6 +80,29 @@ export const Header = () => {
     }
   };
 
+  // 图标渲染函数
+  const renderIcon = (iconName?: string) => {
+    const iconProps = { className: "w-4 h-4" };
+    switch (iconName) {
+      case 'Home':
+        return <Home {...iconProps} />;
+      case 'Gamepad2':
+        return <Gamepad2 {...iconProps} />;
+      case 'Menu':
+        return <Menu {...iconProps} />;
+      case 'Info':
+        return <Info {...iconProps} />;
+      case 'Search':
+        return <Search {...iconProps} />;
+      case 'Star':
+        return <Star {...iconProps} />;
+      case 'User':
+        return <User {...iconProps} />;
+      default:
+        return <Menu {...iconProps} />;
+    }
+  };
+
   return (
     <header className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
       isScrolled 
@@ -92,44 +123,32 @@ export const Header = () => {
               <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 Warp Zone Gems
               </h1>
-              <p className="text-xs text-muted-foreground">马里奥游戏资源宝库</p>
+              <p className="text-xs text-muted-foreground">精品游戏资源宝库</p>
             </div>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Button 
-              variant="ghost" 
-              className="relative group"
-              onClick={() => navigate('/')}
-            >
-              首页
-              <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></div>
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="relative group"
-              onClick={() => navigate('/')}
-            >
-              游戏资源
-              <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></div>
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="relative group"
-              onClick={() => navigate('/categories')}
-            >
-              分类浏览
-              <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></div>
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="relative group"
-              onClick={() => navigate('/about')}
-            >
-              关于我们
-              <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></div>
-            </Button>
+            {navigationItems
+              .filter(item => item.visible)
+              .sort((a, b) => a.order - b.order)
+              .map(item => (
+                <Button 
+                  key={item.id}
+                  variant="ghost" 
+                  className="relative group"
+                  onClick={() => {
+                    if (item.type === 'external' && item.target === '_blank') {
+                      window.open(item.path, '_blank');
+                    } else {
+                      navigate(item.path);
+                    }
+                  }}
+                >
+                  {item.name}
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></div>
+                </Button>
+              ))}
           </nav>
 
           {/* Search & Stats & User Actions */}
@@ -238,34 +257,27 @@ export const Header = () => {
               <div className="w-8 h-1 bg-muted-foreground/30 rounded-full"></div>
             </div>
 
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start hover:bg-primary/10 transition-colors"
-              onClick={() => { navigate('/'); setIsMenuOpen(false); }}
-            >
-              首页
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start hover:bg-primary/10 transition-colors"
-              onClick={() => { navigate('/'); setIsMenuOpen(false); }}
-            >
-              游戏资源
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start hover:bg-primary/10 transition-colors"
-              onClick={() => { navigate('/categories'); setIsMenuOpen(false); }}
-            >
-              分类浏览
-            </Button>
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start hover:bg-primary/10 transition-colors"
-              onClick={() => { navigate('/about'); setIsMenuOpen(false); }}
-            >
-              关于我们
-            </Button>
+            {navigationItems
+              .filter(item => item.visible)
+              .sort((a, b) => a.order - b.order)
+              .map(item => (
+                <Button 
+                  key={item.id}
+                  variant="ghost" 
+                  className="w-full justify-start hover:bg-primary/10 transition-colors"
+                  onClick={() => {
+                    if (item.type === 'external' && item.target === '_blank') {
+                      window.open(item.path, '_blank');
+                    } else {
+                      navigate(item.path);
+                    }
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  {renderIcon(item.icon)}
+                  <span className="ml-2">{item.name}</span>
+                </Button>
+              ))}
             
             {/* Mobile User Actions */}
             {user ? (
@@ -375,7 +387,7 @@ export const Header = () => {
               <div className="mt-4 space-y-2">
                 <p className="text-sm text-muted-foreground mb-2">热门搜索</p>
                 <div className="flex flex-wrap gap-2">
-                  {['马里奥', '路易吉', '耀西', '酷霸王', '蘑菇王国'].map((tag) => (
+                  {['3A游戏', '赛车游戏', '动作游戏', '冒险游戏', '解谜游戏'].map((tag) => (
                     <Badge 
                       key={tag} 
                       variant="secondary" 

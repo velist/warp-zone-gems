@@ -19,6 +19,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import PostManagement from "./pages/PostManagement";
 import PostEditor from "./pages/PostEditor";
 import AdminSettings from "./pages/AdminSettings";
+import NavigationManager from "./pages/NavigationManager";
 import UserAuth from "./components/UserAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { PerformanceMonitor } from "./components/PerformanceMonitor";
@@ -87,6 +88,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdminSettings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/navigation" 
+              element={
+                <ProtectedRoute>
+                  <NavigationManager />
                 </ProtectedRoute>
               } 
             />

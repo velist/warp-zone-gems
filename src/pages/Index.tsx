@@ -1,48 +1,104 @@
-import { Header } from "@/components/Header";
-import { HeroSection } from "@/components/HeroSection";
-import { BannerSection } from "@/components/BannerSection";
-import { EnhancedSearch } from "@/components/EnhancedSearch";
-import { CommercialBanner } from "@/components/CommercialBanner";
-import { CategoryGrid } from "@/components/CategoryGrid";
-import { GameCard } from "@/components/GameCard";
-import { SEOHead } from "@/components/SEOHead";
-import { MobileOptimizedLayout } from "@/components/MobileOptimizedLayout";
-import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ChevronRight, Gamepad2, TrendingUp, Clock } from "lucide-react";
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Header } from "@/components/Header";
+import { GameCard } from "@/components/GameCard";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
+import { SEOHead } from "@/components/SEOHead";
+import { 
+  Search, 
+  ChevronLeft, 
+  ChevronRight, 
+  Play,
+  Download,
+  Star,
+  Loader2
+} from "lucide-react";
 
 const Index = () => {
-  const { games, categories, loading, error } = useSupabaseData();
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState<'trending' | 'latest' | 'classic'>('trending');
-  
-  // 过滤游戏函数
-  const getFilteredGames = () => {
-    switch (activeFilter) {
-      case 'latest':
-        return games.slice().sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      case 'classic':
-        return games.slice().sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
-      case 'trending':
-      default:
-        return games.slice().sort((a, b) => (b.download_count || 0) - (a.download_count || 0));
+  const { games, categories, loading, error } = useSupabaseData();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState("全部");
+  const [bannerIndex, setBannerIndex] = useState(0);
+  const gamesPerPage = 12;
+
+  // 轮播Banner数据 - 精选热门游戏
+  const bannerGames = games.slice(0, 5);
+
+  // 自动轮播
+  useEffect(() => {
+    if (bannerGames.length > 0) {
+      const timer = setInterval(() => {
+        setBannerIndex((prev) => (prev + 1) % bannerGames.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [bannerGames.length]);
+
+  // 过滤游戏
+  const filteredGames = games.filter(game => {
+    const matchesSearch = game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (game.description && game.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCategory = selectedCategory === "全部" || game.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // 分页逻辑
+  const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
+  const startIndex = (currentPage - 1) * gamesPerPage;
+  const currentGames = filteredGames.slice(startIndex, startIndex + gamesPerPage);
+
+  // 处理搜索
+  const handleSearch = () => {
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
+
+  // 处理搜索框回车
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // 热门游戏 (按下载量排序)
+  const hotGames = games
+    .sort((a, b) => (b.download_count || 0) - (a.download_count || 0))
+    .slice(0, 8);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">加载游戏数据中...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 py-8">
-          <Alert className="max-w-md mx-auto">
-            <AlertDescription>
-              数据加载失败: {error}
-            </AlertDescription>
-          </Alert>
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-red-500 mb-4">数据加载失败: {error}</p>
+              <Button onClick={() => window.location.reload()}>重新加载</Button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -51,236 +107,237 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Warp Zone Gems - 马里奥主题游戏资源网站"
-        description="专为马里奥游戏爱好者打造的游戏资源分享平台，提供丰富的马里奥系列游戏下载、攻略和资源分享。探索经典平台游戏，发现隐藏关卡，重温童年回忆。"
-        keywords={[
-          '马里奥', '马里奥游戏', 'Mario', '任天堂', 'Nintendo',
-          '平台游戏', '经典游戏', '游戏下载', '游戏资源', 'Platformer',
-          '超级马里奥', 'Super Mario', '游戏攻略', '像素游戏', '复古游戏'
-        ]}
-        type="website"
-        structuredData={{
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "name": "Warp Zone Gems",
-          "description": "专为马里奥游戏爱好者打造的游戏资源分享平台",
-          "url": "https://velist.github.io/warp-zone-gems",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://velist.github.io/warp-zone-gems/#/search?q={search_term_string}",
-            "query-input": "required name=search_term_string"
-          },
-          "publisher": {
-            "@type": "Organization",
-            "name": "Warp Zone Gems",
-            "logo": {
-              "@type": "ImageObject",
-              "url": "https://velist.github.io/warp-zone-gems/logo.png"
-            }
-          }
-        }}
+        title="Warp Zone Gems - 精品游戏资源分享平台"
+        description="专业的游戏资源分享平台，提供丰富的3A游戏、赛车游戏、动作游戏、冒险游戏和解谜游戏下载"
+        keywords={['游戏下载', '3A游戏', '赛车游戏', '动作游戏', '冒险游戏', '解谜游戏', '游戏资源']}
       />
+      
+      {/* 导航栏 */}
       <Header />
       
-      {/* Mobile Optimized Layout - 移动端优化布局 */}
-      <div className="container mx-auto px-4 py-4">
-        <MobileOptimizedLayout />
-      </div>
-      
-      {/* Hero Section */}
-      <HeroSection />
-      
-      {/* Enhanced Search Section */}
-      <section className="py-8 bg-gradient-to-b from-background to-card/30">
-        <div className="container mx-auto px-4">
-          <EnhancedSearch />
-        </div>
-      </section>
-      
-      {/* Commercial Banner Section */}
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <CommercialBanner />
-        </div>
-      </section>
-      
-      {/* Original Hero Banner Section */}
-      <BannerSection position="hero" className="mb-8" />
-
-      {/* Categories Section */}
-      {loading ? (
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-8">
-              <Skeleton className="h-8 w-64 mx-auto mb-4" />
-              <Skeleton className="h-4 w-96 mx-auto" />
+      <div className="container mx-auto px-4">
+        {/* 轮播Banner */}
+        {bannerGames.length > 0 && (
+          <div className="relative mb-8 mt-6">
+            <div className="relative h-64 md:h-80 rounded-xl overflow-hidden">
+              <div 
+                className="flex transition-transform duration-500 ease-in-out h-full"
+                style={{ transform: `translateX(-${bannerIndex * 100}%)` }}
+              >
+                {bannerGames.map((game, index) => (
+                  <div
+                    key={game.id}
+                    className="min-w-full h-full relative cursor-pointer"
+                    onClick={() => navigate(`/game/${game.id}`)}
+                  >
+                    <div 
+                      className="w-full h-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center"
+                      style={{
+                        backgroundImage: game.cover_image ? `url(${game.cover_image})` : undefined,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+                      <div className="relative z-10 text-center text-white p-8">
+                        <h2 className="text-3xl md:text-4xl font-bold mb-4">{game.title}</h2>
+                        <p className="text-lg mb-6 max-w-2xl mx-auto">
+                          {game.description || "精彩游戏内容等你发现"}
+                        </p>
+                        <div className="flex items-center justify-center space-x-4 mb-6">
+                          <Badge className="bg-white/20 text-white">{game.category}</Badge>
+                          <div className="flex items-center text-sm">
+                            <Download className="w-4 h-4 mr-1" />
+                            {game.download_count || 0} 下载
+                          </div>
+                        </div>
+                        <Button size="lg" className="bg-white text-black hover:bg-gray-100">
+                          <Play className="w-5 h-5 mr-2" />
+                          立即体验
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="block-card">
-                  <Skeleton className="h-48 w-full" />
-                </div>
+            
+            {/* Banner导航按钮 */}
+            <button
+              onClick={() => setBannerIndex((prev) => (prev - 1 + bannerGames.length) % bannerGames.length)}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={() => setBannerIndex((prev) => (prev + 1) % bannerGames.length)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+            
+            {/* Banner指示器 */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+              {bannerGames.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setBannerIndex(index)}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    index === bannerIndex ? 'bg-white' : 'bg-white/50'
+                  }`}
+                />
               ))}
             </div>
           </div>
-        </section>
-      ) : (
-        <CategoryGrid categories={categories} />
-      )}
+        )}
 
-      {/* Featured Games Section */}
-      <section className="py-12 bg-card/30">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                🏆 精选游戏推荐
-              </h2>
-              <p className="text-muted-foreground">
-                最热门和最新的马里奥风格游戏资源
-              </p>
-            </div>
+        {/* 搜索框 */}
+        <div className="mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    placeholder="搜索游戏..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyPress={handleSearchKeyPress}
+                    className="pl-10 h-12"
+                  />
+                </div>
+                <Button 
+                  onClick={handleSearch}
+                  size="lg"
+                  className="h-12 px-8"
+                  disabled={!searchTerm.trim()}
+                >
+                  <Search className="w-5 h-5 mr-2" />
+                  搜索
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 热门游戏展示 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">🔥 热门游戏</h2>
             <Button 
-              variant="outline" 
-              className="hidden md:flex items-center"
+              variant="outline"
               onClick={() => navigate('/categories')}
             >
-              查看全部
-              <ChevronRight className="w-4 h-4 ml-1" />
+              查看全部分类
             </Button>
           </div>
-
-          {/* Filter Tabs */}
-          <div className="flex flex-wrap gap-2 mb-8">
-            <Button 
-              variant={activeFilter === 'trending' ? 'default' : 'outline'} 
-              size="sm" 
-              className={activeFilter === 'trending' ? 'mario-button' : ''}
-              onClick={() => setActiveFilter('trending')}
-            >
-              <TrendingUp className="w-4 h-4 mr-1" />
-              热门推荐
-            </Button>
-            <Button 
-              variant={activeFilter === 'latest' ? 'default' : 'outline'} 
-              size="sm"
-              className={activeFilter === 'latest' ? 'mario-button' : ''}
-              onClick={() => setActiveFilter('latest')}
-            >
-              <Clock className="w-4 h-4 mr-1" />
-              最新上传
-            </Button>
-            <Button 
-              variant={activeFilter === 'classic' ? 'default' : 'outline'} 
-              size="sm"
-              className={activeFilter === 'classic' ? 'mario-button' : ''}
-              onClick={() => setActiveFilter('classic')}
-            >
-              <Gamepad2 className="w-4 h-4 mr-1" />
-              经典收藏
-            </Button>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {hotGames.map((game) => (
+              <GameCard
+                key={game.id}
+                id={game.id}
+                title={game.title}
+                description={game.description || ""}
+                image={game.cover_image || "/placeholder.svg"}
+                category={game.category}
+                downloads={game.download_count || 0}
+                rating={4.5}
+                size="未知大小"
+              />
+            ))}
           </div>
+        </div>
 
-          {loading ? (
+        {/* 分类筛选 */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            {["全部", ...categories.map(cat => cat.name)].map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                onClick={() => {
+                  setSelectedCategory(category);
+                  setCurrentPage(1);
+                }}
+                className="mb-2"
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* 游戏列表 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">
+              {selectedCategory === "全部" ? "所有游戏" : selectedCategory}
+              <span className="text-sm text-muted-foreground ml-2">
+                ({filteredGames.length} 个游戏)
+              </span>
+            </h2>
+          </div>
+          
+          {currentGames.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="block-card">
-                  <Skeleton className="h-48 w-full mb-4" />
-                  <Skeleton className="h-4 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
+              {currentGames.map((game) => (
+                <GameCard
+                  key={game.id}
+                  id={game.id}
+                  title={game.title}
+                  description={game.description || ""}
+                  image={game.cover_image || "/placeholder.svg"}
+                  category={game.category}
+                  downloads={game.download_count || 0}
+                  rating={4.5}
+                  size="未知大小"
+                />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {getFilteredGames().slice(0, 8).map((game, index) => (
-                <div
-                  key={game.id}
-                  className="animate-bounce-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <GameCard game={game} />
-                </div>
-              ))}
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">暂无符合条件的游戏</p>
             </div>
           )}
+        </div>
 
-          {/* Show All Button for Mobile */}
-          <div className="text-center mt-8 md:hidden">
-            <Button 
-              className="mario-button"
-              onClick={() => navigate('/categories')}
+        {/* 分页 */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center space-x-2 mb-8">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
             >
-              查看更多游戏
-              <ChevronRight className="w-4 h-4 ml-1" />
+              <ChevronLeft className="w-4 h-4" />
+              上一页
+            </Button>
+            
+            <div className="flex items-center space-x-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "outline"}
+                  onClick={() => setCurrentPage(page)}
+                  className="min-w-10"
+                >
+                  {page}
+                </Button>
+              ))}
+            </div>
+            
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              下一页
+              <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            🌟 社区成就统计
-          </h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            <div className="block-card">
-              <div className="text-3xl md:text-4xl font-bold text-primary mb-2 floating-animation">
-                {games.length}+
-              </div>
-              <div className="text-sm text-muted-foreground">游戏资源</div>
-              <div className="text-xs text-muted-foreground mt-1">持续更新中</div>
-            </div>
-            <div className="block-card">
-              <div className="text-3xl md:text-4xl font-bold text-secondary mb-2 floating-animation" style={{ animationDelay: '0.5s' }}>
-                {categories.length}
-              </div>
-              <div className="text-sm text-muted-foreground">游戏分类</div>
-              <div className="text-xs text-muted-foreground mt-1">精心分类</div>
-            </div>
-            <div className="block-card">
-              <div className="text-3xl md:text-4xl font-bold text-accent mb-2 floating-animation" style={{ animationDelay: '1s' }}>
-                1.2K+
-              </div>
-              <div className="text-sm text-muted-foreground">累计下载</div>
-              <div className="text-xs text-muted-foreground mt-1">深受喜爱</div>
-            </div>
-            <div className="block-card">
-              <div className="text-3xl md:text-4xl font-bold text-primary mb-2 floating-animation" style={{ animationDelay: '1.5s' }}>
-                98%
-              </div>
-              <div className="text-sm text-muted-foreground">满意度</div>
-              <div className="text-xs text-muted-foreground mt-1">用户好评</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-card border-t py-12">
-        <div className="container mx-auto px-4 text-center">
-          <div className="mb-6">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4 floating-animation">
-              <Gamepad2 className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Warp Zone Gems
-            </h3>
-          </div>
-          
-          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-            致力于为马里奥游戏爱好者提供最优质的游戏资源和体验。
-            让我们一起重温经典，探索无限可能！
-          </p>
-          
-          <div className="flex justify-center space-x-8 text-sm text-muted-foreground">
-            <span>© 2024 Warp Zone Gems</span>
-            <span>Made with ❤️ for gamers</span>
-          </div>
-        </div>
-      </footer>
+        )}
+      </div>
     </div>
   );
 };

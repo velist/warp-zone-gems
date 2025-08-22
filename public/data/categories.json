@@ -1,56 +1,47 @@
 [
   {
-    "id": "platformer",
-    "name": "平台跳跃",
-    "slug": "platformer",
-    "description": "经典的马里奥平台跳跃游戏",
-    "color": "#ef4444",
-    "icon": "🏃",
-    "games_count": 5
+    "id": "aaa-games",
+    "name": "3A游戏",
+    "slug": "aaa-games",
+    "description": "顶级制作的大型游戏作品",
+    "color": "#dc2626",
+    "icon": "🎮",
+    "games_count": 15
   },
   {
     "id": "racing",
-    "name": "赛车竞速",
+    "name": "赛车游戏",
     "slug": "racing",
-    "description": "马里奥卡丁车系列游戏",
+    "description": "高速竞技赛车游戏",
     "color": "#3b82f6",
     "icon": "🏎️",
-    "games_count": 2
+    "games_count": 12
   },
   {
-    "id": "rpg",
-    "name": "角色扮演",
-    "slug": "rpg",
-    "description": "马里奥RPG冒险游戏",
-    "color": "#8b5cf6",
-    "icon": "⚔️",
-    "games_count": 0
-  },
-  {
-    "id": "party",
-    "name": "派对游戏",
-    "slug": "party",
-    "description": "马里奥派对聚会游戏",
+    "id": "action",
+    "name": "动作游戏",
+    "slug": "action",
+    "description": "紧张刺激的动作冒险游戏",
     "color": "#f59e0b",
-    "icon": "🎉",
-    "games_count": 1
+    "icon": "⚔️",
+    "games_count": 18
   },
   {
-    "id": "sports",
-    "name": "体感运动",
-    "slug": "sports",
-    "description": "马里奥体感运动游戏",
+    "id": "adventure",
+    "name": "冒险游戏",
+    "slug": "adventure",
+    "description": "探索未知世界的冒险之旅",
     "color": "#10b981",
-    "icon": "⚽",
-    "games_count": 1
+    "icon": "🗺️",
+    "games_count": 14
   },
   {
     "id": "puzzle",
-    "name": "解谜益智",
+    "name": "解谜游戏",
     "slug": "puzzle",
-    "description": "马里奥解谜益智游戏",
-    "color": "#06b6d4",
+    "description": "考验智慧的解谜益智游戏",
+    "color": "#8b5cf6",
     "icon": "🧩",
-    "games_count": 0
+    "games_count": 10
   }
 ]
