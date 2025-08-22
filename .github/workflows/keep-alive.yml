@@ -1,0 +1,53 @@
+name: Keep Supabase Database Alive
+
+on:
+  schedule:
+    # 每天UTC时间2点运行 (北京时间10点)
+    - cron: '0 2 * * *'
+    # 每12小时运行一次，确保数据库保持活跃
+    - cron: '0 14 * * *'
+  # 允许手动触发
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Keep database alive
+      run: |
+        echo "开始执行数据库保活任务..."
+        
+        # 方法1: 访问你的网站首页
+        echo "访问网站首页..."
+        curl -f -s -o /dev/null "https://your-website-url.github.io/" || echo "网站访问失败"
+        
+        # 方法2: 直接访问你的Supabase API
+        echo "访问Supabase API端点..."
+        curl -f -s "https://oiatqeymovnyubrnlmlu.supabase.co/rest/v1/games?select=id&limit=1" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" || echo "API访问失败"
+        
+        # 方法3: 运行专用保活脚本
+        echo "执行保活脚本..."
+        node scripts/keep-alive.cjs
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+    - name: Log completion
+      run: |
+        echo "保活任务完成时间: $(date)"
+        echo "下次运行时间: 12小时后"

@@ -1,16 +1,37 @@
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { BannerSection } from "@/components/BannerSection";
+import { EnhancedSearch } from "@/components/EnhancedSearch";
+import { CommercialBanner } from "@/components/CommercialBanner";
 import { CategoryGrid } from "@/components/CategoryGrid";
 import { GameCard } from "@/components/GameCard";
+import { SEOHead } from "@/components/SEOHead";
+import { MobileOptimizedLayout } from "@/components/MobileOptimizedLayout";
 import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ChevronRight, Gamepad2, TrendingUp, Clock } from "lucide-react";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const { games, categories, loading, error } = useSupabaseData();
+  const navigate = useNavigate();
+  const [activeFilter, setActiveFilter] = useState<'trending' | 'latest' | 'classic'>('trending');
+  
+  // 过滤游戏函数
+  const getFilteredGames = () => {
+    switch (activeFilter) {
+      case 'latest':
+        return games.slice().sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      case 'classic':
+        return games.slice().sort((a, b) => (b.view_count || 0) - (a.view_count || 0));
+      case 'trending':
+      default:
+        return games.slice().sort((a, b) => (b.download_count || 0) - (a.download_count || 0));
+    }
+  };
 
   if (error) {
     return (
@@ -29,12 +50,61 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Warp Zone Gems - 马里奥主题游戏资源网站"
+        description="专为马里奥游戏爱好者打造的游戏资源分享平台，提供丰富的马里奥系列游戏下载、攻略和资源分享。探索经典平台游戏，发现隐藏关卡，重温童年回忆。"
+        keywords={[
+          '马里奥', '马里奥游戏', 'Mario', '任天堂', 'Nintendo',
+          '平台游戏', '经典游戏', '游戏下载', '游戏资源', 'Platformer',
+          '超级马里奥', 'Super Mario', '游戏攻略', '像素游戏', '复古游戏'
+        ]}
+        type="website"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Warp Zone Gems",
+          "description": "专为马里奥游戏爱好者打造的游戏资源分享平台",
+          "url": "https://velist.github.io/warp-zone-gems",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://velist.github.io/warp-zone-gems/#/search?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Warp Zone Gems",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://velist.github.io/warp-zone-gems/logo.png"
+            }
+          }
+        }}
+      />
       <Header />
+      
+      {/* Mobile Optimized Layout - 移动端优化布局 */}
+      <div className="container mx-auto px-4 py-4">
+        <MobileOptimizedLayout />
+      </div>
       
       {/* Hero Section */}
       <HeroSection />
       
-      {/* Hero Banner Section */}
+      {/* Enhanced Search Section */}
+      <section className="py-8 bg-gradient-to-b from-background to-card/30">
+        <div className="container mx-auto px-4">
+          <EnhancedSearch />
+        </div>
+      </section>
+      
+      {/* Commercial Banner Section */}
+      <section className="py-8">
+        <div className="container mx-auto px-4">
+          <CommercialBanner />
+        </div>
+      </section>
+      
+      {/* Original Hero Banner Section */}
       <BannerSection position="hero" className="mb-8" />
 
       {/* Categories Section */}
@@ -70,7 +140,11 @@ const Index = () => {
                 最热门和最新的马里奥风格游戏资源
               </p>
             </div>
-            <Button variant="outline" className="hidden md:flex items-center">
+            <Button 
+              variant="outline" 
+              className="hidden md:flex items-center"
+              onClick={() => navigate('/categories')}
+            >
               查看全部
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
@@ -78,15 +152,30 @@ const Index = () => {
 
           {/* Filter Tabs */}
           <div className="flex flex-wrap gap-2 mb-8">
-            <Button variant="default" size="sm" className="mario-button">
+            <Button 
+              variant={activeFilter === 'trending' ? 'default' : 'outline'} 
+              size="sm" 
+              className={activeFilter === 'trending' ? 'mario-button' : ''}
+              onClick={() => setActiveFilter('trending')}
+            >
               <TrendingUp className="w-4 h-4 mr-1" />
               热门推荐
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant={activeFilter === 'latest' ? 'default' : 'outline'} 
+              size="sm"
+              className={activeFilter === 'latest' ? 'mario-button' : ''}
+              onClick={() => setActiveFilter('latest')}
+            >
               <Clock className="w-4 h-4 mr-1" />
               最新上传
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant={activeFilter === 'classic' ? 'default' : 'outline'} 
+              size="sm"
+              className={activeFilter === 'classic' ? 'mario-button' : ''}
+              onClick={() => setActiveFilter('classic')}
+            >
               <Gamepad2 className="w-4 h-4 mr-1" />
               经典收藏
             </Button>
@@ -104,7 +193,7 @@ const Index = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {games.slice(0, 8).map((game, index) => (
+              {getFilteredGames().slice(0, 8).map((game, index) => (
                 <div
                   key={game.id}
                   className="animate-bounce-in"
@@ -118,7 +207,10 @@ const Index = () => {
 
           {/* Show All Button for Mobile */}
           <div className="text-center mt-8 md:hidden">
-            <Button className="mario-button">
+            <Button 
+              className="mario-button"
+              onClick={() => navigate('/categories')}
+            >
               查看更多游戏
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>

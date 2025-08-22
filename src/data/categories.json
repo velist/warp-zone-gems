@@ -6,7 +6,7 @@
     "description": "经典的马里奥平台跳跃游戏",
     "color": "#ef4444",
     "icon": "🏃",
-    "games_count": 5
+    "games_count": 6
   },
   {
     "id": "racing",
@@ -24,7 +24,7 @@
     "description": "马里奥RPG冒险游戏",
     "color": "#8b5cf6",
     "icon": "⚔️",
-    "games_count": 0
+    "games_count": 3
   },
   {
     "id": "party",

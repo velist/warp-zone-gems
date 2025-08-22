@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from "@/components/Header";
+import { SEOHead, createGameSEO } from "@/components/SEOHead";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -157,6 +158,7 @@ const GameDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead {...createGameSEO(game)} />
       <Header />
       
       <div className="container mx-auto px-4 py-8">

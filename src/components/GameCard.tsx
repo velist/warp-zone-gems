@@ -1,6 +1,7 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { GameImage } from "@/components/OptimizedImage";
 import { Star, Download, Eye, Clock, Tag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -32,24 +33,17 @@ export const GameCard = ({ game }: GameCardProps) => {
   return (
     <Card className="block-card group cursor-pointer overflow-hidden" onClick={handleCardClick}>
       <CardHeader className="p-0">
-        <div className="relative overflow-hidden rounded-t-xl h-48 bg-gradient-to-br from-primary/20 to-secondary/20">
-          {game.cover_image ? (
-            <img
-              src={game.cover_image}
-              alt={game.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
-              <div className="w-16 h-16 rounded-xl bg-primary/20 flex items-center justify-center floating-animation">
-                <span className="text-2xl">🎮</span>
-              </div>
-            </div>
-          )}
+        <div className="relative overflow-hidden rounded-t-xl h-48">
+          <GameImage
+            src={game.cover_image}
+            title={game.title}
+            category={game.category}
+            className="w-full h-full transition-transform duration-500 group-hover:scale-110"
+          />
           
           {/* Category Badge */}
           <Badge 
-            className="absolute top-3 left-3 coin-shine"
+            className="absolute top-3 left-3 coin-shine z-10"
             style={{ backgroundColor: `hsl(var(--accent))`, color: `hsl(var(--accent-foreground))` }}
           >
             <Tag className="w-3 h-3 mr-1" />
@@ -57,7 +51,7 @@ export const GameCard = ({ game }: GameCardProps) => {
           </Badge>
 
           {/* Action Buttons Overlay */}
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-3">
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-3 z-10">
             <Button 
               size="sm" 
               variant="secondary" 

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
+import { SEOHead, createCategorySEO } from "@/components/SEOHead";
 import { GameCard } from "@/components/GameCard";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -169,6 +170,26 @@ const Categories = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={viewMode === "categories" ? "游戏分类" : selectedCategoryData?.name}
+        description={
+          viewMode === "categories" 
+            ? "浏览所有马里奥游戏分类，包括平台跳跃、竞速、动作、益智等多种类型游戏资源" 
+            : `${selectedCategoryData?.description} - 共${selectedCategoryData?.count}款游戏`
+        }
+        keywords={
+          viewMode === "categories"
+            ? ['游戏分类', '马里奥游戏', '平台游戏', '竞速游戏', '动作游戏', '益智游戏']
+            : [selectedCategoryData?.name || '', '马里奥游戏', '游戏下载', '游戏资源']
+        }
+        structuredData={
+          selectedCategoryData ? createCategorySEO({
+            name: selectedCategoryData.name,
+            description: selectedCategoryData.description,
+            gameCount: selectedCategoryData.count
+          }).structuredData : undefined
+        }
+      />
       <Header />
       
       <div className="container mx-auto px-4 py-8">

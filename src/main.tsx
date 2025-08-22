@@ -6,10 +6,15 @@ import './index.css'
 import { initPerformanceMonitoring } from './lib/performance'
 // PWA 初始化
 import { initPWA } from './lib/pwa'
+// 预加载器初始化
+import { initializePreloader } from './lib/preloader'
 
 // 初始化性能监控
 if (typeof window !== 'undefined') {
   initPerformanceMonitoring();
+  
+  // 初始化预加载器
+  initializePreloader();
   
   // 初始化 PWA
   initPWA().catch(error => {

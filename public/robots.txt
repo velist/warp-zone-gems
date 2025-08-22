@@ -1,14 +1,45 @@
+# Warp Zone Gems - 马里奥主题游戏资源网站
+# 允许所有搜索引擎爬虫访问
+
+User-agent: *
+Allow: /
+
+# 禁止访问管理后台和私有文件
+Disallow: /admin/
+Disallow: /api/
+Disallow: /src/
+Disallow: /node_modules/
+Disallow: /dist/
+Disallow: /.git/
+Disallow: /.env
+Disallow: /package*.json
+
+# 特别允许重要的数据文件用于SEO
+Allow: /data/games.json
+Allow: /data/categories.json
+Allow: /data/banners.json
+
+# 网站地图位置
+Sitemap: https://velist.github.io/warp-zone-gems/sitemap.xml
+
+# 爬取延迟（礼貌性设置）
+Crawl-delay: 1
+
+# 特定搜索引擎设置
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 0
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
+
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 2
 
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
-Allow: /
-
-User-agent: *
 Allow: /

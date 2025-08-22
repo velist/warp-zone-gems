@@ -189,5 +189,85 @@
     "status": "published",
     "created_at": "2025-08-15T00:00:00.000Z",
     "updated_at": "2025-08-15T00:00:00.000Z"
+  },
+  {
+    "id": "光与影-33号远征队",
+    "title": "光与影：33号远征队",
+    "description": "",
+    "category": "平台跳跃",
+    "tags": [],
+    "cover_image": "/placeholder.svg",
+    "download_link": "#",
+    "published_at": "2025-08-21",
+    "view_count": 569,
+    "download_count": 435,
+    "content": "",
+    "status": "draft",
+    "created_at": "2025-08-21T18:02:42.839Z",
+    "updated_at": "2025-08-21T18:02:42.839Z"
+  },
+  {
+    "id": "霍格沃茨之遗",
+    "title": "霍格沃茨之遗",
+    "description": "",
+    "category": "角色扮演",
+    "tags": [
+      "角色扮演",
+      "魔法",
+      "霍格沃茨"
+    ],
+    "cover_image": "/placeholder.svg",
+    "download_link": "#",
+    "published_at": "2025-08-21",
+    "view_count": 807,
+    "download_count": 67,
+    "content": "",
+    "status": "draft",
+    "created_at": "2025-08-21T18:02:42.839Z",
+    "updated_at": "2025-08-21T18:02:42.839Z"
+  },
+  {
+    "id": "博德之门3",
+    "title": "博德之门3",
+    "description": "",
+    "category": "角色扮演",
+    "tags": [
+      "角色扮演",
+      "奇幻",
+      "单机",
+      "RPG",
+      "回合制"
+    ],
+    "cover_image": "/placeholder.svg",
+    "download_link": "#",
+    "published_at": "2025-08-21",
+    "view_count": 1000,
+    "download_count": 514,
+    "content": "",
+    "status": "draft",
+    "created_at": "2025-08-21T18:02:42.839Z",
+    "updated_at": "2025-08-21T18:02:42.839Z"
+  },
+  {
+    "id": "赛博朋克2077",
+    "title": "赛博朋克2077",
+    "description": "",
+    "category": "角色扮演",
+    "tags": [
+      "赛博朋克",
+      "开放世界",
+      "RPG",
+      "动作",
+      "科幻"
+    ],
+    "cover_image": "/placeholder.svg",
+    "download_link": "#",
+    "published_at": "2025-08-21",
+    "view_count": 664,
+    "download_count": 473,
+    "content": "",
+    "status": "draft",
+    "created_at": "2025-08-21T18:02:42.839Z",
+    "updated_at": "2025-08-21T18:02:42.839Z"
   }
 ]

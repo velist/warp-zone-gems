@@ -11,6 +11,7 @@ import Favorites from "./pages/Favorites";
 import Categories from "./pages/Categories";
 import About from "./pages/About";
 import Leaderboard from "./pages/Leaderboard";
+import SearchResults from "./pages/SearchResults";
 import AdminLogin from "./components/AdminLogin";
 import AdminRegister from "./components/AdminRegister";
 import DevAdminSetup from "./components/DevAdminSetup";
@@ -23,6 +24,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { PerformanceMonitor } from "./components/PerformanceMonitor";
 import { PopupSystem } from "./components/PopupSystem";
 import { FloatingElements } from "./components/FloatingElements";
+import { SitemapGenerator } from "./components/SitemapGenerator";
 import { AuthProvider } from "./hooks/useAuth";
 import "./App.css";
 
@@ -43,6 +45,7 @@ const App = () => (
             <Route path="/categories" element={<Categories />} />
             <Route path="/about" element={<About />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/search" element={<SearchResults />} />
             <Route path="/auth" element={<UserAuth />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/register" element={<AdminRegister />} />
@@ -92,7 +95,8 @@ const App = () => (
           </Routes>
         </AuthProvider>
       </HashRouter>
-      {/* 性能监控组件 */}
+      {/* SEO和性能组件 */}
+      <SitemapGenerator />
       <PerformanceMonitor />
       {/* 弹窗系统 */}
       <PopupSystem />

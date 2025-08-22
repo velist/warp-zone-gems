@@ -23,7 +23,10 @@
     "ai-import": "node scripts/ai-batch-import.js",
     "setup-static-ai": "scripts/setup-static-ai.bat",
     "admin": "cd admin && node server.cjs",
-    "admin:start": "admin/start.bat"
+    "admin:start": "admin/start.bat",
+    "keep-alive": "node scripts/keep-alive.cjs",
+    "keep-alive:test": "echo 'Testing keep-alive script...' && npm run keep-alive",
+    "test-supabase": "node scripts/test-supabase.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
