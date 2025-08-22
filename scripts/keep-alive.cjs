@@ -11,7 +11,7 @@ const http = require('http');
 const config = {
   supabaseUrl: process.env.VITE_SUPABASE_URL || "https://oiatqeymovnyubrnlmlu.supabase.co",
   supabaseKey: process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pYXRxZXltb3ZueXVicm5sbWx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQzMjM0MzYsImV4cCI6MjA2OTg5OTQzNn0.U-3p0SEVNOQUV4lYFWRiOfVmxgNSbMRWx0mE0DXZYuM",
-  websiteUrl: process.env.WEBSITE_URL || 'https://your-website-url.github.io',
+  websiteUrl: process.env.WEBSITE_URL || 'https://velist.github.io/warp-zone-gems/',
   maxRetries: 3,
   retryDelay: 5000, // 5秒
 };
@@ -184,14 +184,15 @@ async function main() {
   // 发送状态报告
   const report = await sendStatusReport(websiteStatus, databaseStatus);
   
-  // 根据结果设置退出码
-  const success = websiteStatus && databaseStatus;
-  
-  if (success) {
-    log('✅ 保活任务完成，数据库应该保持活跃状态');
+  // 根据结果设置退出码 - 只要数据库正常就算成功
+  if (databaseStatus) {
+    log('✅ 保活任务完成，数据库保持活跃状态');
+    if (!websiteStatus) {
+      log('ℹ️  网站访问失败但不影响数据库保活');
+    }
     process.exit(0);
   } else {
-    log('❌ 保活任务部分失败，请检查配置和网络连接');
+    log('❌ 数据库保活失败，请检查配置和网络连接');
     process.exit(1);
   }
 }

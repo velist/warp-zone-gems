@@ -30,9 +30,9 @@ jobs:
       run: |
         echo "开始执行数据库保活任务..."
         
-        # 方法1: 访问你的网站首页
+        # 方法1: 访问GitHub Pages网站首页
         echo "访问网站首页..."
-        curl -f -s -o /dev/null "https://your-website-url.github.io/" || echo "网站访问失败"
+        curl -f -s -o /dev/null "https://velist.github.io/warp-zone-gems/" || echo "网站访问失败"
         
         # 方法2: 直接访问你的Supabase API
         echo "访问Supabase API端点..."
