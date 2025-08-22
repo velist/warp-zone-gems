@@ -236,14 +236,16 @@ const Index = () => {
             {hotGames.map((game) => (
               <GameCard
                 key={game.id}
-                id={game.id}
-                title={game.title}
-                description={game.description || ""}
-                image={game.cover_image || "/placeholder.svg"}
-                category={game.category}
-                downloads={game.download_count || 0}
-                rating={4.5}
-                size="未知大小"
+                game={{
+                  id: game.id,
+                  title: game.title,
+                  description: game.description || "",
+                  cover_image: game.cover_image || "/placeholder.svg",
+                  category: game.category,
+                  tags: game.tags || [],
+                  author: game.author || "",
+                  published_at: game.published_at || ""
+                }}
               />
             ))}
           </div>
@@ -284,14 +286,16 @@ const Index = () => {
               {currentGames.map((game) => (
                 <GameCard
                   key={game.id}
-                  id={game.id}
-                  title={game.title}
-                  description={game.description || ""}
-                  image={game.cover_image || "/placeholder.svg"}
-                  category={game.category}
-                  downloads={game.download_count || 0}
-                  rating={4.5}
-                  size="未知大小"
+                  game={{
+                    id: game.id,
+                    title: game.title,
+                    description: game.description || "",
+                    cover_image: game.cover_image || "/placeholder.svg",
+                    category: game.category,
+                    tags: game.tags || [],
+                    author: game.author || "",
+                    published_at: game.published_at || ""
+                  }}
                 />
               ))}
             </div>
