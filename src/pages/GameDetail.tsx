@@ -54,7 +54,7 @@ const GameDetail = () => {
       if (isProduction) {
         // 生产环境：直接读取静态JSON文件
         console.log('Production mode: fetching games from static JSON');
-        const response = await fetch('/data/games.json');
+        const response = await fetch('/warp-zone-gems/data/games.json');
         if (!response.ok) {
           throw new Error(`Failed to fetch games: ${response.status}`);
         }

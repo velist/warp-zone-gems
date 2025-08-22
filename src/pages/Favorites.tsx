@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
 import { GameCard } from "@/components/GameCard";
 import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useNavigate } from "react-router-dom";
 import { 
   Star, 
@@ -18,7 +19,8 @@ import {
   Grid3X3,
   List,
   SortAsc,
-  SortDesc
+  SortDesc,
+  Loader2
 } from "lucide-react";
 import {
   Select,
@@ -28,51 +30,47 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// 模拟收藏的游戏数据
-const mockFavoriteGames = [
-  {
-    id: 1,
-    title: "Super Mario Bros.",
-    description: "经典的马里奥兄弟游戏",
-    image: "/placeholder.svg",
-    category: "平台跳跃",
-    downloads: 1234,
-    rating: 4.8,
-    size: "2.5MB",
-    addedDate: "2024-01-15"
-  },
-  {
-    id: 2,
-    title: "Mario Kart",
-    description: "刺激的卡丁车竞速游戏",
-    image: "/placeholder.svg",
-    category: "竞速游戏",
-    downloads: 987,
-    rating: 4.7,
-    size: "5.2MB",
-    addedDate: "2024-01-10"
-  },
-  {
-    id: 3,
-    title: "Super Mario World",
-    description: "马里奥的世界冒险",
-    image: "/placeholder.svg",
-    category: "冒险游戏",
-    downloads: 2156,
-    rating: 4.9,
-    size: "3.8MB",
-    addedDate: "2024-01-08"
+// 收藏管理工具函数
+const getFavoriteIds = (): string[] => {
+  try {
+    const favorites = localStorage.getItem('gamesFavorites');
+    return favorites ? JSON.parse(favorites) : [];
+  } catch {
+    return [];
   }
-];
+};
+
+const addToFavorites = (gameId: string) => {
+  const favorites = getFavoriteIds();
+  if (!favorites.includes(gameId)) {
+    favorites.push(gameId);
+    localStorage.setItem('gamesFavorites', JSON.stringify(favorites));
+  }
+};
+
+const removeFromFavorites = (gameId: string) => {
+  const favorites = getFavoriteIds();
+  const updated = favorites.filter(id => id !== gameId);
+  localStorage.setItem('gamesFavorites', JSON.stringify(updated));
+};
 
 const Favorites = () => {
   const { user } = useAuth();
+  const { games, loading, error } = useSupabaseData();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("addedDate");
+  const [sortBy, setSortBy] = useState("title");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [favoriteGames, setFavoriteGames] = useState(mockFavoriteGames);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+
+  // 获取收藏的游戏ID列表
+  useEffect(() => {
+    setFavoriteIds(getFavoriteIds());
+  }, []);
+
+  // 获取收藏的游戏数据
+  const favoriteGames = games.filter(game => favoriteIds.includes(game.id));
 
   useEffect(() => {
     if (!user) {
@@ -85,7 +83,7 @@ const Favorites = () => {
   const filteredAndSortedGames = favoriteGames
     .filter(game => 
       game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      game.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (game.description && game.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
       game.category.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
@@ -97,16 +95,16 @@ const Favorites = () => {
           bValue = b.title;
           break;
         case "downloads":
-          aValue = a.downloads;
-          bValue = b.downloads;
+          aValue = a.download_count || 0;
+          bValue = b.download_count || 0;
           break;
-        case "rating":
-          aValue = a.rating;
-          bValue = b.rating;
+        case "category":
+          aValue = a.category;
+          bValue = b.category;
           break;
-        case "addedDate":
-          aValue = new Date(a.addedDate).getTime();
-          bValue = new Date(b.addedDate).getTime();
+        case "date":
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
           break;
         default:
           aValue = a.title;
@@ -120,9 +118,27 @@ const Favorites = () => {
       }
     });
 
-  const handleRemoveFromFavorites = (gameId: number) => {
-    setFavoriteGames(prev => prev.filter(game => game.id !== gameId));
+  const handleRemoveFromFavorites = (gameId: string) => {
+    removeFromFavorites(gameId);
+    setFavoriteIds(getFavoriteIds());
   };
+
+  // 如果数据加载中，显示加载状态
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">加载收藏数据中...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return null;
@@ -203,10 +219,10 @@ const Favorites = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="addedDate">添加时间</SelectItem>
                       <SelectItem value="title">游戏名称</SelectItem>
                       <SelectItem value="downloads">下载量</SelectItem>
-                      <SelectItem value="rating">评分</SelectItem>
+                      <SelectItem value="category">分类</SelectItem>
+                      <SelectItem value="date">创建时间</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -278,38 +294,38 @@ const Favorites = () => {
                     <GameCard
                       id={game.id}
                       title={game.title}
-                      description={game.description}
-                      image={game.image}
+                      description={game.description || ""}
+                      image={game.cover_image || "/placeholder.svg"}
                       category={game.category}
-                      downloads={game.downloads}
-                      rating={game.rating}
-                      size={game.size}
+                      downloads={game.download_count || 0}
+                      rating={4.5}
+                      size="未知大小"
                     />
                   ) : (
                     <Card className="hover:shadow-lg transition-shadow">
                       <CardContent className="p-4">
                         <div className="flex items-center space-x-4">
                           <img 
-                            src={game.image} 
+                            src={game.cover_image || "/placeholder.svg"} 
                             alt={game.title}
                             className="w-16 h-16 rounded-lg object-cover"
                           />
                           <div className="flex-1">
                             <h3 className="font-semibold text-lg">{game.title}</h3>
-                            <p className="text-muted-foreground text-sm">{game.description}</p>
+                            <p className="text-muted-foreground text-sm">{game.description || "暂无描述"}</p>
                             <div className="flex items-center space-x-4 mt-2">
                               <Badge variant="secondary">{game.category}</Badge>
                               <span className="text-sm text-muted-foreground flex items-center">
                                 <Download className="w-3 h-3 mr-1" />
-                                {game.downloads}
+                                {game.download_count || 0}
                               </span>
                               <span className="text-sm text-muted-foreground flex items-center">
                                 <Star className="w-3 h-3 mr-1 fill-yellow-400 text-yellow-400" />
-                                {game.rating}
+                                4.5
                               </span>
                               <span className="text-sm text-muted-foreground flex items-center">
                                 <Calendar className="w-3 h-3 mr-1" />
-                                {new Date(game.addedDate).toLocaleDateString('zh-CN')}
+                                {new Date(game.created_at).toLocaleDateString('zh-CN')}
                               </span>
                             </div>
                           </div>

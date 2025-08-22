@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
 import { SEOHead, createCategorySEO } from "@/components/SEOHead";
 import { GameCard } from "@/components/GameCard";
+import { useSupabaseData } from "@/hooks/useSupabaseData";
 import { useNavigate } from "react-router-dom";
 import { 
   Search, 
@@ -20,146 +21,74 @@ import {
   Users,
   Filter,
   Grid3X3,
-  List
+  List,
+  Loader2
 } from "lucide-react";
 
-// 游戏分类数据
-const gameCategories = [
-  {
-    id: "platform",
-    name: "平台跳跃",
-    description: "经典的马里奥式平台跳跃游戏",
-    icon: Gamepad2,
-    color: "bg-blue-500",
-    count: 45,
-    games: [
-      {
-        id: 1,
-        title: "Super Mario Bros.",
-        description: "经典的马里奥兄弟游戏",
-        image: "/placeholder.svg",
-        category: "平台跳跃",
-        downloads: 1234,
-        rating: 4.8,
-        size: "2.5MB"
-      },
-      {
-        id: 2,
-        title: "Super Mario World",
-        description: "马里奥的世界冒险",
-        image: "/placeholder.svg",
-        category: "平台跳跃",
-        downloads: 2156,
-        rating: 4.9,
-        size: "3.8MB"
-      }
-    ]
-  },
-  {
-    id: "action",
-    name: "动作游戏",
-    description: "快节奏的动作冒险游戏",
-    icon: Zap,
-    color: "bg-red-500",
-    count: 32,
-    games: [
-      {
-        id: 3,
-        title: "Mario vs Donkey Kong",
-        description: "马里奥对战金刚",
-        image: "/placeholder.svg",
-        category: "动作游戏",
-        downloads: 876,
-        rating: 4.6,
-        size: "4.2MB"
-      }
-    ]
-  },
-  {
-    id: "racing",
-    name: "竞速游戏",
-    description: "刺激的卡丁车和竞速游戏",
-    icon: Car,
-    color: "bg-green-500",
-    count: 28,
-    games: [
-      {
-        id: 4,
-        title: "Mario Kart",
-        description: "刺激的卡丁车竞速游戏",
-        image: "/placeholder.svg",
-        category: "竞速游戏",
-        downloads: 987,
-        rating: 4.7,
-        size: "5.2MB"
-      }
-    ]
-  },
-  {
-    id: "puzzle",
-    name: "益智游戏",
-    description: "考验智力的解谜游戏",
-    icon: Puzzle,
-    color: "bg-purple-500",
-    count: 21,
-    games: []
-  },
-  {
-    id: "rpg",
-    name: "角色扮演",
-    description: "深度的角色扮演游戏",
-    icon: Sword,
-    color: "bg-orange-500",
-    count: 15,
-    games: []
-  },
-  {
-    id: "music",
-    name: "音乐游戏",
-    description: "节奏感十足的音乐游戏",
-    icon: Music,
-    color: "bg-pink-500",
-    count: 12,
-    games: []
-  },
-  {
-    id: "sports",
-    name: "体育游戏",
-    description: "各种体育运动游戏",
-    icon: Trophy,
-    color: "bg-yellow-500",
-    count: 18,
-    games: []
-  },
-  {
-    id: "party",
-    name: "聚会游戏",
-    description: "多人聚会娱乐游戏",
-    icon: Users,
-    color: "bg-indigo-500",
-    count: 9,
-    games: []
-  }
-];
+// 分类图标映射
+const categoryIconMap: Record<string, any> = {
+  "平台跳跃": Gamepad2,
+  "动作冒险": Zap,
+  "竞速游戏": Car,
+  "赛车竞速": Car,
+  "解谜益智": Puzzle,
+  "角色扮演": Sword,
+  "音乐游戏": Music,
+  "体感运动": Trophy,
+  "派对游戏": Users,
+  "体育游戏": Trophy,
+  "default": Gamepad2
+};
+
+// 分类颜色映射
+const categoryColorMap: Record<string, string> = {
+  "平台跳跃": "bg-blue-500",
+  "动作冒险": "bg-red-500",
+  "竞速游戏": "bg-green-500",
+  "赛车竞速": "bg-green-500",
+  "解谜益智": "bg-purple-500",
+  "角色扮演": "bg-orange-500",
+  "音乐游戏": "bg-pink-500",
+  "体感运动": "bg-yellow-500",
+  "派对游戏": "bg-indigo-500",
+  "体育游戏": "bg-yellow-500",
+  "default": "bg-gray-500"
+};
 
 const Categories = () => {
   const navigate = useNavigate();
+  const { games, categories, loading, error } = useSupabaseData();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"categories" | "games">("categories");
 
+  // 处理分类数据，添加图标和颜色，统计游戏数量
+  const processedCategories = categories.map(category => {
+    const gamesInCategory = games.filter(game => game.category === category.name);
+    const IconComponent = categoryIconMap[category.name] || categoryIconMap.default;
+    const color = categoryColorMap[category.name] || categoryColorMap.default;
+    
+    return {
+      ...category,
+      icon: IconComponent,
+      color,
+      count: gamesInCategory.length,
+      games: gamesInCategory
+    };
+  });
+
   // 过滤分类
-  const filteredCategories = gameCategories.filter(category =>
+  const filteredCategories = processedCategories.filter(category =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    category.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // 获取选中分类的游戏
-  const selectedCategoryData = gameCategories.find(cat => cat.id === selectedCategory);
+  const selectedCategoryData = processedCategories.find(cat => cat.slug === selectedCategory || cat.name === selectedCategory);
   const categoryGames = selectedCategoryData?.games || [];
 
-  const handleCategoryClick = (categoryId: string) => {
-    setSelectedCategory(categoryId);
+  const handleCategoryClick = (categorySlug: string) => {
+    setSelectedCategory(categorySlug);
     setViewMode("games");
   };
 
@@ -167,6 +96,40 @@ const Categories = () => {
     setSelectedCategory(null);
     setViewMode("categories");
   };
+
+  // 如果数据加载中，显示加载状态
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">加载分类数据中...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 如果数据加载出错，显示错误状态
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-red-500 mb-4">数据加载失败: {error}</p>
+              <Button onClick={() => window.location.reload()}>重新加载</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -260,14 +223,14 @@ const Categories = () => {
                   <Card 
                     key={category.id}
                     className="hover:shadow-lg transition-all duration-300 cursor-pointer group hover:scale-105"
-                    onClick={() => handleCategoryClick(category.id)}
+                    onClick={() => handleCategoryClick(category.slug || category.name)}
                   >
                     <CardContent className="p-6 text-center">
                       <div className={`w-16 h-16 ${category.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
                         <IconComponent className="w-8 h-8 text-white" />
                       </div>
                       <h3 className="text-xl font-semibold mb-2">{category.name}</h3>
-                      <p className="text-muted-foreground text-sm mb-4">{category.description}</p>
+                      <p className="text-muted-foreground text-sm mb-4">{category.description || `精选的${category.name}游戏`}</p>
                       <Badge variant="secondary" className="text-sm">
                         {category.count} 个游戏
                       </Badge>
@@ -310,12 +273,12 @@ const Categories = () => {
                       key={game.id}
                       id={game.id}
                       title={game.title}
-                      description={game.description}
-                      image={game.image}
+                      description={game.description || ""}
+                      image={game.cover_image || "/placeholder.svg"}
                       category={game.category}
-                      downloads={game.downloads}
-                      rating={game.rating}
-                      size={game.size}
+                      downloads={game.download_count || 0}
+                      rating={4.5} // 默认评分，可以后续添加评分系统
+                      size="未知大小" // 可以后续添加文件大小字段
                     />
                   ))}
                 </div>
@@ -336,25 +299,25 @@ const Categories = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-500">
-                      {gameCategories.reduce((sum, cat) => sum + cat.count, 0)}
+                      {games.length}
                     </div>
                     <div className="text-sm text-muted-foreground">总游戏数</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-500">
-                      {gameCategories.length}
+                      {processedCategories.length}
                     </div>
                     <div className="text-sm text-muted-foreground">游戏分类</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-500">
-                      {Math.max(...gameCategories.map(cat => cat.count))}
+                      {processedCategories.length > 0 ? Math.max(...processedCategories.map(cat => cat.count)) : 0}
                     </div>
                     <div className="text-sm text-muted-foreground">最多游戏</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-orange-500">
-                      {Math.round(gameCategories.reduce((sum, cat) => sum + cat.count, 0) / gameCategories.length)}
+                      {processedCategories.length > 0 ? Math.round(games.length / processedCategories.length) : 0}
                     </div>
                     <div className="text-sm text-muted-foreground">平均数量</div>
                   </div>
