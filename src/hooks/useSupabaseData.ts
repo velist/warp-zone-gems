@@ -39,8 +39,8 @@ const getDataSource = () => {
     // 生产环境：直接读取静态JSON文件
     return {
       type: 'static',
-      gamesUrl: '/data/games.json',
-      categoriesUrl: '/data/categories.json'
+      gamesUrl: '/warp-zone-gems/data/games.json',
+      categoriesUrl: '/warp-zone-gems/data/categories.json'
     };
   } else {
     // 开发环境：使用本地管理后台API
