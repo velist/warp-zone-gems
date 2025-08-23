@@ -91,25 +91,19 @@ const DatabaseFixer = () => {
               message: `成功读取 ${jsonGames.length} 条JSON游戏数据`
             });
 
-            // 方法4：直接同步JSON数据，忽略不存在的字段
-            const safeGames = jsonGames.map(game => ({
+            // 方法4：最安全的字段同步（只包含绝对确定存在的字段）
+            const ultraSafeGames = jsonGames.map(game => ({
               id: game.id,
               title: game.title,
               description: game.description || '',
-              content: game.content || game.description || '',
-              cover_image: game.cover_image || '',
-              category: game.category,
-              tags: game.tags || [],
-              author: game.author || 'System',
-              download_link: game.download_link || '#',
-              published_at: game.published_at || game.created_at || new Date().toISOString()
-              // 不包含可能不存在的字段
+              category: game.category
+              // 只包含最基础的4个必需字段
             }));
 
-            // 批量插入安全字段
+            // 批量插入超级安全字段
             const { data: safeInsert, error: safeInsertError } = await supabase
               .from('games')
-              .upsert(safeGames, { onConflict: 'id' })
+              .upsert(ultraSafeGames, { onConflict: 'id' })
               .select();
 
             if (safeInsertError) {
@@ -122,7 +116,7 @@ const DatabaseFixer = () => {
               stepResults.push({
                 name: '安全字段同步',
                 success: true,
-                message: `成功同步 ${safeInsert?.length || 0} 条游戏数据（基础字段）`
+                message: `成功同步 ${safeInsert?.length || 0} 条游戏数据（超级安全模式：仅4个基础字段）`
               });
             }
           } else {

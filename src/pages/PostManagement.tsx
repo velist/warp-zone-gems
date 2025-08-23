@@ -140,21 +140,13 @@ const PostManagement = () => {
       setLoading(true);
       
       // 将前端数据转换为数据库格式并同步（包含所有字段）
+      // 超级安全模式：只同步数据库绝对确定存在的字段
       const gamesToSync = frontendGames.map(game => ({
         id: game.id,
         title: game.title,
         description: game.description || '',
-        content: game.content || game.description || '',
-        cover_image: game.cover_image || '',
-        category: game.category,
-        tags: game.tags || [],
-        author: game.author || 'System',
-        download_link: game.download_link || '#',
-        published_at: game.published_at || game.created_at || new Date().toISOString(),
-        // 现在包含前端数据中存在的字段
-        status: game.status || 'published',
-        view_count: game.view_count || 0,
-        download_count: game.download_count || 0
+        category: game.category
+        // 只包含最基础的4个必需字段，避免字段不存在错误
       }));
 
       console.log('Syncing games to database:', gamesToSync.length);
@@ -173,7 +165,7 @@ const PostManagement = () => {
 
       toast({
         title: "数据同步成功",
-        description: `成功同步 ${upsertedGames?.length || 0} 个游戏到数据库`,
+        description: `成功同步 ${upsertedGames?.length || 0} 个游戏到数据库（安全模式：仅基础字段）`,
       });
 
       // 刷新数据库数据
