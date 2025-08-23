@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit, Trash2, Eye, Calendar, User } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, Calendar, User, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BatchImportDialog } from '@/components/BatchImportDialog';
 import { GameInfo } from '@/lib/aiContentProcessor';
@@ -22,6 +23,7 @@ interface Game {
   published_at: string;
   created_at: string;
   tags: string[];
+  status?: string;
 }
 
 const PostManagement = () => {
@@ -29,15 +31,31 @@ const PostManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dataSource, setDataSource] = useState<'database' | 'frontend'>('database');
   const [adminSettings, setAdminSettings] = useState<{ silicon_flow_api_key?: string; preferred_ai_model?: string } | null>(null);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { games: frontendGames, loading: frontendLoading } = useSupabaseData();
 
   useEffect(() => {
-    fetchPosts();
+    if (dataSource === 'database') {
+      fetchPosts();
+    } else {
+      // 使用前端数据
+      setLoading(frontendLoading);
+      setPosts(frontendGames.map(game => ({
+        ...game,
+        description: game.description || '',
+        cover_image: game.cover_image || '',
+        author: game.author || '',
+        published_at: game.published_at || '',
+        tags: game.tags || []
+      })));
+    }
     fetchAdminSettings();
-  }, []);
+  }, [dataSource, frontendGames, frontendLoading]);
 
   const fetchAdminSettings = async () => {
     if (!user) return;
@@ -103,6 +121,68 @@ const PostManagement = () => {
     navigate('/');
   };
 
+  // 同步前端JSON数据到数据库
+  const handleSyncFromFrontend = async () => {
+    if (!window.confirm('确定要将前端JSON数据同步到数据库吗？这将覆盖数据库中的现有数据。')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // 将前端数据转换为数据库格式并同步
+      const gamesToSync = frontendGames.map(game => ({
+        id: game.id,
+        title: game.title,
+        description: game.description || '',
+        content: game.content || game.description || '',
+        cover_image: game.cover_image || '',
+        category: game.category,
+        tags: game.tags || [],
+        author: game.author || 'System',
+        download_link: game.download_link || '#',
+        published_at: game.published_at || game.created_at || new Date().toISOString(),
+        status: game.status || 'published',
+        view_count: game.view_count || 0,
+        download_count: game.download_count || 0
+      }));
+
+      console.log('Syncing games to database:', gamesToSync.length);
+
+      const { data: upsertedGames, error: upsertError } = await supabase
+        .from('games')
+        .upsert(gamesToSync, { 
+          onConflict: 'id',
+          ignoreDuplicates: false 
+        })
+        .select();
+
+      if (upsertError) {
+        throw new Error(`数据同步失败: ${upsertError.message}`);
+      }
+
+      toast({
+        title: "数据同步成功",
+        description: `成功同步 ${upsertedGames?.length || 0} 个游戏到数据库`,
+      });
+
+      // 刷新数据库数据
+      if (dataSource === 'database') {
+        await fetchPosts();
+      }
+
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast({
+        title: "同步失败",
+        description: error instanceof Error ? error.message : '数据同步过程中发生错误',
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 处理批量导入完成
   const handleBatchImportComplete = async (games: GameInfo[]) => {
     try {
@@ -150,11 +230,13 @@ const PostManagement = () => {
     }
   };
 
-  const filteredPosts = posts.filter(post =>
-    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPosts = posts.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         post.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         post.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || post.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('zh-CN', {
@@ -207,19 +289,56 @@ const PostManagement = () => {
               />
             )}
             
-            <div className="relative">
-              <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="搜索标题、描述或分类..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-64"
-              />
+            {/* 数据同步按钮 */}
+            {frontendGames.length > 0 && dataSource === 'database' && (
+              <Button 
+                onClick={handleSyncFromFrontend}
+                variant="outline"
+                className="border-green-500 text-green-600 hover:bg-green-50"
+                disabled={loading}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                同步前端数据 ({frontendGames.length})
+              </Button>
+            )}
+            
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="搜索标题、描述或分类..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-64"
+                />
+              </div>
+              
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">所有状态</option>
+                <option value="published">已发布</option>
+                <option value="draft">草稿</option>
+              </select>
+              
+              <select
+                value={dataSource}
+                onChange={(e) => setDataSource(e.target.value as 'database' | 'frontend')}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-blue-50"
+              >
+                <option value="database">数据库数据</option>
+                <option value="frontend">前端数据源</option>
+              </select>
             </div>
           </div>
           <div className="text-sm text-gray-500">
-            共 {filteredPosts.length} 条内容
+            共 {filteredPosts.length} 条内容 
+            <span className="ml-2 text-xs">
+              (数据源: {dataSource === 'database' ? '数据库' : '前端JSON'})
+            </span>
           </div>
         </div>
 
@@ -273,7 +392,15 @@ const PostManagement = () => {
                 <CardContent className="pt-0">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Badge variant="secondary">{post.category}</Badge>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="secondary">{post.category}</Badge>
+                        <Badge 
+                          variant={post.status === 'published' ? 'default' : 'outline'}
+                          className={post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}
+                        >
+                          {post.status === 'published' ? '已发布' : post.status === 'draft' ? '草稿' : post.status || '未知'}
+                        </Badge>
+                      </div>
                       <div className="flex space-x-1">
                         <Button
                           size="sm"
