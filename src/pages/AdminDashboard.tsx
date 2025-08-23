@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Plus, Settings, BarChart3, FileText, Menu, Image, MessageSquare } from 'lucide-react';
+import { LogOut, Plus, Settings, BarChart3, FileText, Menu, Image, MessageSquare, Database } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
@@ -116,6 +116,31 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <CardDescription>配置API密钥和系统参数</CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 紧急修复工具 */}
+        <div className="grid grid-cols-1 gap-6 mb-8">
+          <Card className="border-orange-200 bg-orange-50">
+            <CardHeader>
+              <CardTitle className="text-orange-800 flex items-center">
+                <Database className="h-5 w-5 mr-2" />
+                数据库修复工具
+              </CardTitle>
+              <CardDescription className="text-orange-700">
+                修复同步功能的字段缺失问题：Could not find the download_count column
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={() => navigate('/admin/database-fix')}
+                variant="outline"
+                className="border-orange-300 text-orange-700 hover:bg-orange-100"
+              >
+                <Database className="h-4 w-4 mr-2" />
+                修复数据库字段
+              </Button>
             </CardContent>
           </Card>
         </div>

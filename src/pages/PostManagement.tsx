@@ -17,6 +17,7 @@ interface Game {
   id: string;
   title: string;
   description: string;
+  content?: string;
   category: string;
   cover_image: string;
   author: string;
@@ -24,6 +25,9 @@ interface Game {
   created_at: string;
   tags: string[];
   status?: string;
+  view_count?: number;
+  download_count?: number;
+  download_link?: string;
 }
 
 const PostManagement = () => {
@@ -48,10 +52,15 @@ const PostManagement = () => {
       setPosts(frontendGames.map(game => ({
         ...game,
         description: game.description || '',
+        content: game.content || '',
         cover_image: game.cover_image || '',
         author: game.author || '',
         published_at: game.published_at || '',
-        tags: game.tags || []
+        tags: game.tags || [],
+        status: game.status || 'published',
+        view_count: game.view_count || 0,
+        download_count: game.download_count || 0,
+        download_link: game.download_link || '#'
       })));
     }
     fetchAdminSettings();
@@ -130,7 +139,7 @@ const PostManagement = () => {
     try {
       setLoading(true);
       
-      // 将前端数据转换为数据库格式并同步（只包含数据库实际存在的字段）
+      // 将前端数据转换为数据库格式并同步（包含所有字段）
       const gamesToSync = frontendGames.map(game => ({
         id: game.id,
         title: game.title,
@@ -141,8 +150,11 @@ const PostManagement = () => {
         tags: game.tags || [],
         author: game.author || 'System',
         download_link: game.download_link || '#',
-        published_at: game.published_at || game.created_at || new Date().toISOString()
-        // 注意：不包含 status, view_count, download_count 等数据库中不存在的字段
+        published_at: game.published_at || game.created_at || new Date().toISOString(),
+        // 现在包含前端数据中存在的字段
+        status: game.status || 'published',
+        view_count: game.view_count || 0,
+        download_count: game.download_count || 0
       }));
 
       console.log('Syncing games to database:', gamesToSync.length);

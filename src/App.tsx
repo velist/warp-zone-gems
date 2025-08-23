@@ -22,6 +22,7 @@ import AdminSettings from "./pages/AdminSettings";
 import NavigationManager from "./pages/NavigationManager";
 import BannerManager from "./pages/BannerManager";
 import PopupManager from "./pages/PopupManager";
+import DatabaseFixer from "./pages/DatabaseFixer";
 import UserAuth from "./components/UserAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { PerformanceMonitor } from "./components/PerformanceMonitor";
@@ -114,6 +115,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <PopupManager />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/database-fix" 
+              element={
+                <ProtectedRoute>
+                  <DatabaseFixer />
                 </ProtectedRoute>
               } 
             />
