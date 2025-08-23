@@ -98,7 +98,7 @@ export class SmartPreloader {
     const isProduction = window.location.hostname === 'velist.github.io';
     
     if (isProduction) {
-      const response = await fetch('/data/games.json');
+      const response = await fetch('/warp-zone-gems/data/games.json');
       const games = await response.json();
       return games.slice(0, limit);
     } else {

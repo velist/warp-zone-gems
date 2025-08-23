@@ -39,7 +39,7 @@ export const PopupSystem: React.FC = () => {
       
       if (isProduction) {
         // 生产环境：直接读取静态JSON文件
-        const response = await fetch('/data/popups.json');
+        const response = await fetch('/warp-zone-gems/data/popups.json');
         if (response.ok) {
           popupsData = await response.json();
         } else {

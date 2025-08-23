@@ -45,7 +45,7 @@ export const BannerSection: React.FC<BannerSectionProps> = ({ position, classNam
       
       if (isProduction) {
         // 生产环境：直接读取静态JSON文件
-        const response = await fetch('/data/banners.json');
+        const response = await fetch('/warp-zone-gems/data/banners.json');
         if (response.ok) {
           bannersData = await response.json();
         } else {

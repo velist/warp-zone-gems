@@ -37,7 +37,7 @@ export const FloatingElements: React.FC = () => {
       
       if (isProduction) {
         // 生产环境：直接读取静态JSON文件
-        const response = await fetch('/data/floating-windows.json');
+        const response = await fetch('/warp-zone-gems/data/floating-windows.json');
         if (response.ok) {
           elementsData = await response.json();
         } else {
