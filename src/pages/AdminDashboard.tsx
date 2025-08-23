@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Plus, Settings, BarChart3, FileText, Menu } from 'lucide-react';
+import { LogOut, Plus, Settings, BarChart3, FileText, Menu, Image, MessageSquare } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
@@ -48,7 +48,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* 快速操作卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
           <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={handleCreatePost}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">创建新内容</CardTitle>
@@ -86,6 +86,26 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <CardDescription>管理网站导航菜单</CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/admin/banners')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Banner管理</CardTitle>
+              <Image className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <CardDescription>管理网站横幅和轮播图</CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/admin/popups')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">弹窗管理</CardTitle>
+              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <CardDescription>管理网站弹窗和通知</CardDescription>
             </CardContent>
           </Card>
 

@@ -20,6 +20,8 @@ import PostManagement from "./pages/PostManagement";
 import PostEditor from "./pages/PostEditor";
 import AdminSettings from "./pages/AdminSettings";
 import NavigationManager from "./pages/NavigationManager";
+import BannerManager from "./pages/BannerManager";
+import PopupManager from "./pages/PopupManager";
 import UserAuth from "./components/UserAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { PerformanceMonitor } from "./components/PerformanceMonitor";
@@ -96,6 +98,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <NavigationManager />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/banners" 
+              element={
+                <ProtectedRoute>
+                  <BannerManager />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/popups" 
+              element={
+                <ProtectedRoute>
+                  <PopupManager />
                 </ProtectedRoute>
               } 
             />
