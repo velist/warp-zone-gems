@@ -250,7 +250,7 @@
                         <span id="deploymentText">准备发布</span>
                     </div>
                     <button onclick="publishToWebsite()" class="green-button text-white px-4 py-2 rounded-lg font-bold">
-                        🚀 发布到网站
+                        🚀 发布网站
                     </button>
                     <button onclick="refreshData()" class="mario-button text-white px-4 py-2 rounded-lg font-bold">
                         🔄 刷新
@@ -382,10 +382,10 @@
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span>网站地址</span>
-                                <a href="https://velist.github.io/warp-zone-gems/" target="_blank" class="text-blue-600 hover:underline">查看网站</a>
+                                <a href="https://aigame.lol" target="_blank" class="text-blue-600 hover:underline">查看网站</a>
                             </div>
                             <button onclick="publishToWebsite()" id="publishButton" class="w-full green-button text-white px-4 py-3 rounded-lg font-bold">
-                                🚀 发布到GitHub Pages
+                                🚀 一键发布
                             </button>
                         </div>
                     </div>
@@ -520,12 +520,57 @@
             <div id="banners-tab" class="tab-content hidden">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-bold">🖼️ Banner管理</h2>
-                    <button onclick="loadBannersData()" class="mario-button text-white px-4 py-2 rounded-lg font-bold">
-                        🔄 刷新列表
-                    </button>
+                    <div class="flex space-x-2">
+                        <button onclick="showModal('bannerModal')" class="blue-button text-white px-4 py-2 rounded-lg font-bold">
+                            ➕ 添加Banner
+                        </button>
+                        <button onclick="previewBanners()" class="green-button text-white px-4 py-2 rounded-lg font-bold">
+                            👁️ 预览效果
+                        </button>
+                        <button onclick="loadBannersData()" class="mario-button text-white px-4 py-2 rounded-lg font-bold">
+                            🔄 刷新列表
+                        </button>
+                    </div>
                 </div>
-                <div id="bannersGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- Banner位置分组视图 -->
+                <div class="mb-6">
+                    <div class="bg-gray-100 rounded-lg p-1 inline-flex">
+                        <button class="view-tab-btn px-4 py-2 rounded-md active" data-position="all" onclick="filterBannersByPosition('all')">
+                            📂 全部
+                        </button>
+                        <button class="view-tab-btn px-4 py-2 rounded-md" data-position="hero" onclick="filterBannersByPosition('hero')">
+                            🖼️ 首页横幅
+                        </button>
+                        <button class="view-tab-btn px-4 py-2 rounded-md" data-position="sidebar" onclick="filterBannersByPosition('sidebar')">
+                            📱 侧边栏
+                        </button>
+                        <button class="view-tab-btn px-4 py-2 rounded-md" data-position="content" onclick="filterBannersByPosition('content')">
+                            📄 内容区
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Banner列表 -->
+                <div id="bannersGrid" class="space-y-4">
                     <!-- Banner卡片将在这里动态生成 -->
+                </div>
+                
+                <!-- 使用说明 -->
+                <div class="mt-8 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                    <div class="flex">
+                        <div class="text-2xl mr-3">💡</div>
+                        <div>
+                            <p class="font-bold text-blue-800">Banner管理说明</p>
+                            <ul class="text-blue-700 text-sm mt-2 list-disc list-inside space-y-1">
+                                <li><strong>首页横幅</strong>：显示在网站首页顶部，支持轮播切换</li>
+                                <li><strong>侧边栏</strong>：显示在页面侧边栏区域，适合推广内容</li>
+                                <li><strong>内容区</strong>：显示在页面内容区域，适合文章配图</li>
+                                <li>可设置显示时间范围和优先级顺序</li>
+                                <li>支持实时预览和状态切换</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -976,6 +1021,125 @@
         </div>
     </div>
 
+    <!-- Banner编辑模态框 -->
+    <div id="bannerModal" class="modal">
+        <div class="modal-content w-full max-w-4xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">🖼️ 配置Banner</h3>
+                <button onclick="hideModal('bannerModal')" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <form id="bannerForm">
+                <input type="hidden" id="bannerId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 左列 -->
+                    <div class="space-y-4">
+                        <div class="form-group">
+                            <label class="form-label">Banner标题 *</label>
+                            <input type="text" id="bannerTitle" class="form-input" required placeholder="输入Banner标题">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Banner描述</label>
+                            <textarea id="bannerDescription" class="form-input form-textarea" rows="3" placeholder="输入Banner描述（可选）"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">显示位置 *</label>
+                            <select id="bannerPosition" class="form-input" required>
+                                <option value="hero">首页横幅</option>
+                                <option value="sidebar">侧边栏</option>
+                                <option value="content">内容区</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">图片URL *</label>
+                            <div class="space-y-2">
+                                <input type="url" id="bannerImageUrl" class="form-input" required placeholder="https://example.com/image.jpg">
+                                <div class="text-xs text-gray-500">
+                                    推荐尺寸: 横幅1200x400px, 侧边栏400x200px
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">链接地址</label>
+                            <input type="url" id="bannerLinkUrl" class="form-input" placeholder="https://example.com（点击跳转地址，可选）">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">按钮文字</label>
+                            <input type="text" id="bannerLinkText" class="form-input" placeholder="了解更多（链接按钮显示文字）">
+                        </div>
+                    </div>
+                    
+                    <!-- 右列 -->
+                    <div class="space-y-4">
+                        <!-- 图片预览 -->
+                        <div class="form-group">
+                            <label class="form-label">实时预览</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-gray-50">
+                                <img id="bannerImagePreview" src="" alt="Banner预览" 
+                                     class="w-full h-32 object-cover mx-auto rounded-lg mb-2 bg-white shadow-sm hidden"
+                                     onerror="this.classList.add('hidden')">
+                                <div id="bannerPreviewPlaceholder" class="text-gray-500">
+                                    <div class="text-4xl mb-2">🖼️</div>
+                                    <p class="text-sm">输入图片URL查看预览</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="form-label">显示顺序</label>
+                                <input type="number" id="bannerOrder" class="form-input" min="0" value="1" placeholder="数字越小越靠前">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">状态</label>
+                                <select id="bannerStatus" class="form-input">
+                                    <option value="active">启用</option>
+                                    <option value="inactive">禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="form-label">开始日期</label>
+                                <input type="date" id="bannerStartDate" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">结束日期</label>
+                                <input type="date" id="bannerEndDate" class="form-input">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="bg-gray-50 p-3 rounded text-sm">
+                                <div class="font-bold text-gray-700 mb-2">位置说明：</div>
+                                <div class="space-y-1 text-gray-600">
+                                    <div><strong>首页横幅：</strong> 网站顶部大图轮播</div>
+                                    <div><strong>侧边栏：</strong> 页面右侧推广位</div>
+                                    <div><strong>内容区：</strong> 文章页面配图</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+                    <button type="button" onclick="hideModal('bannerModal')" class="mario-button text-white px-6 py-2 rounded-lg">
+                        取消
+                    </button>
+                    <button type="submit" class="green-button text-white px-6 py-2 rounded-lg">
+                        保存Banner
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- 游戏编辑模态框 -->
     <div id="gameModal" class="modal">
         <div class="modal-content w-full max-w-4xl">
@@ -1110,6 +1274,8 @@
         let currentGameView = 'published';
         let gamesData = [];
         let categoriesData = [];
+        let bannersData = [];
+        let currentBannerPosition = 'all';
         let appConfig = {};
         let websiteContent = {};
         let popupsData = [];
@@ -1126,6 +1292,7 @@
             initGameForm();
             initPopupForm();
             initFloatingForm();
+            initBannerForm();
             loadPublishStatus();
         });
 
@@ -1336,11 +1503,17 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    renderBannersGrid(result.data || []);
+                    bannersData = result.data || [];
+                    renderBannersGrid();
+                } else {
+                    console.error('加载Banner数据失败:', result);
+                    bannersData = [];
+                    renderBannersGrid();
                 }
             } catch (error) {
                 console.error('加载Banner数据失败:', error);
-                renderBannersGrid([]);
+                bannersData = [];
+                renderBannersGrid();
             }
         }
 
@@ -1544,25 +1717,494 @@
             }).join('');
         }
 
-        function renderBannersGrid(bannersData) {
+        function renderBannersGrid() {
             const grid = document.getElementById('bannersGrid');
-            if (!bannersData || bannersData.length === 0) {
-                grid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">暂无Banner数据</div>';
+            
+            // 根据位置过滤
+            let filteredBanners = bannersData;
+            if (currentBannerPosition !== 'all') {
+                filteredBanners = bannersData.filter(banner => banner.position === currentBannerPosition);
+            }
+            
+            // 按order和创建时间排序
+            filteredBanners.sort((a, b) => {
+                const orderA = a.order || 999;
+                const orderB = b.order || 999;
+                if (orderA !== orderB) return orderA - orderB;
+                return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+            });
+            
+            if (filteredBanners.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-gray-500">
+                        <div class="text-6xl mb-4">🖼️</div>
+                        <p class="text-xl mb-2">暂无${getPositionName(currentBannerPosition)}Banner</p>
+                        <p class="text-sm">点击上方"添加Banner"按钮创建第一个Banner</p>
+                    </div>
+                `;
                 return;
             }
 
-            grid.innerHTML = bannersData.map(banner => `
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <img src="${banner.imageUrl}" alt="${banner.title}" class="w-full h-32 object-cover">
-                    <div class="p-4">
-                        <h3 class="font-bold mb-2">${banner.title}</h3>
-                        <p class="text-xs text-gray-500 mb-3">位置: ${banner.position} | 状态: ${banner.status}</p>
+            grid.innerHTML = filteredBanners.map(banner => `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 ${getBannerStatusColor(banner.status)}">
+                    <div class="flex">
+                        <!-- Banner图片预览 -->
+                        <div class="w-48 h-32 flex-shrink-0">
+                            <img src="${banner.imageUrl}" alt="${banner.title}" 
+                                 class="w-full h-full object-cover"
+                                 onerror="this.src='${getPlaceholderImage()}'">
+                        </div>
+                        
+                        <!-- Banner信息 -->
+                        <div class="flex-1 p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-lg text-gray-900 mb-1">${banner.title}</h3>
+                                    <p class="text-sm text-gray-600 mb-2">${banner.description || '暂无描述'}</p>
+                                    
+                                    <!-- Banner标签信息 -->
+                                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-bold">
+                                            ${getPositionName(banner.position)}
+                                        </span>
+                                        <span class="px-2 py-1 rounded text-xs font-bold ${getBannerStatusBadge(banner.status)}">
+                                            ${banner.status === 'active' ? '✅ 启用' : '❌ 禁用'}
+                                        </span>
+                                        <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                                            排序: ${banner.order || 0}
+                                        </span>
+                                        ${banner.linkUrl ? '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">🔗 有链接</span>' : ''}
+                                    </div>
+                                    
+                                    <!-- 时间信息 -->
+                                    <div class="text-xs text-gray-500 space-y-1">
+                                        ${banner.startDate ? `<div>开始: ${formatDate(banner.startDate)}</div>` : ''}
+                                        ${banner.endDate ? `<div>结束: ${formatDate(banner.endDate)}</div>` : ''}
+                                        <div>创建: ${formatDate(banner.created_at)}</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 操作按钮 -->
+                                <div class="flex flex-col space-y-1 ml-4">
+                                    <button onclick="editBanner('${banner.id}')" 
+                                            class="blue-button text-white px-3 py-1 rounded text-sm whitespace-nowrap">
+                                        ✏️ 编辑
+                                    </button>
+                                    <button onclick="toggleBannerStatus('${banner.id}', '${banner.status === 'active' ? 'inactive' : 'active'}')" 
+                                            class="yellow-button text-white px-3 py-1 rounded text-sm whitespace-nowrap">
+                                        ${banner.status === 'active' ? '⏸️ 禁用' : '▶️ 启用'}
+                                    </button>
+                                    <button onclick="duplicateBanner('${banner.id}')" 
+                                            class="green-button text-white px-3 py-1 rounded text-sm whitespace-nowrap">
+                                        📋 复制
+                                    </button>
+                                    <button onclick="deleteBanner('${banner.id}')" 
+                                            class="mario-button text-white px-3 py-1 rounded text-sm whitespace-nowrap">
+                                        🗑️ 删除
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
+        
+        // Banner辅助函数
+        function getPositionName(position) {
+            const names = {
+                'all': '全部',
+                'hero': '首页横幅',
+                'sidebar': '侧边栏',
+                'content': '内容区'
+            };
+            return names[position] || position;
+        }
+        
+        function getBannerStatusColor(status) {
+            return status === 'active' ? 'border-green-400' : 'border-gray-400';
+        }
+        
+        function getBannerStatusBadge(status) {
+            return status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600';
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            try {
+                return new Date(dateString).toLocaleDateString('zh-CN');
+            } catch (error) {
+                return dateString;
+            }
+        }
+        
+        function getPlaceholderImage() {
+            return `data:image/svg+xml;charset=utf8,${encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="192" height="128" viewBox="0 0 192 128">
+                    <rect width="192" height="128" fill="#f3f4f6" stroke="#d1d5db"/>
+                    <circle cx="96" cy="50" r="12" fill="#6b7280"/>
+                    <rect x="84" y="70" width="24" height="15" rx="3" fill="#6b7280"/>
+                    <text x="96" y="100" font-family="Arial" font-size="12" fill="#6b7280" text-anchor="middle">Banner Image</text>
+                </svg>
+            `)}`;
+        }
+        
+        // ======================== Banner管理功能 ========================
+        
+        // 初始化Banner表单
+        function initBannerForm() {
+            document.getElementById('bannerForm').addEventListener('submit', saveBanner);
+            
+            // 绑定图片预览
+            document.getElementById('bannerImageUrl').addEventListener('input', function() {
+                updateBannerImagePreview(this.value);
+            });
+        }
+        
+        // 更新Banner图片预览
+        function updateBannerImagePreview(src) {
+            const preview = document.getElementById('bannerImagePreview');
+            const placeholder = document.getElementById('bannerPreviewPlaceholder');
+            
+            if (src && src.trim()) {
+                preview.src = src;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                
+                preview.onload = function() {
+                    this.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                };
+                
+                preview.onerror = function() {
+                    this.classList.add('hidden');
+                    placeholder.classList.remove('hidden');
+                };
+            } else {
+                preview.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
+        }
+        
+        // 按位置过滤Banner
+        function filterBannersByPosition(position) {
+            currentBannerPosition = position;
+            
+            // 更新标签状态
+            document.querySelectorAll('[data-position]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-position="${position}"]`).classList.add('active');
+            
+            renderBannersGrid();
+        }
+        
+        // 编辑Banner
+        function editBanner(bannerId) {
+            const banner = bannersData.find(b => b.id === bannerId);
+            if (!banner) {
+                showToast('Banner不存在', 'error');
+                return;
+            }
+            
+            // 填充表单
+            document.getElementById('bannerId').value = banner.id;
+            document.getElementById('bannerTitle').value = banner.title || '';
+            document.getElementById('bannerDescription').value = banner.description || '';
+            document.getElementById('bannerPosition').value = banner.position || 'hero';
+            document.getElementById('bannerImageUrl').value = banner.imageUrl || '';
+            document.getElementById('bannerLinkUrl').value = banner.linkUrl || '';
+            document.getElementById('bannerLinkText').value = banner.linkText || '';
+            document.getElementById('bannerOrder').value = banner.order || 1;
+            document.getElementById('bannerStatus').value = banner.status || 'active';
+            document.getElementById('bannerStartDate').value = banner.startDate || '';
+            document.getElementById('bannerEndDate').value = banner.endDate || '';
+            
+            // 更新图片预览
+            updateBannerImagePreview(banner.imageUrl);
+            
+            showModal('bannerModal');
+        }
+        
+        // 保存Banner
+        async function saveBanner(event) {
+            event.preventDefault();
+            
+            const bannerId = document.getElementById('bannerId').value;
+            const bannerData = {
+                title: document.getElementById('bannerTitle').value.trim(),
+                description: document.getElementById('bannerDescription').value.trim(),
+                position: document.getElementById('bannerPosition').value,
+                imageUrl: document.getElementById('bannerImageUrl').value.trim(),
+                linkUrl: document.getElementById('bannerLinkUrl').value.trim(),
+                linkText: document.getElementById('bannerLinkText').value.trim(),
+                order: parseInt(document.getElementById('bannerOrder').value) || 1,
+                status: document.getElementById('bannerStatus').value,
+                startDate: document.getElementById('bannerStartDate').value,
+                endDate: document.getElementById('bannerEndDate').value
+            };
+            
+            // 验证必填字段
+            if (!bannerData.title) {
+                showToast('请输入Banner标题', 'error');
+                return;
+            }
+            
+            if (!bannerData.imageUrl) {
+                showToast('请输入图片URL', 'error');
+                return;
+            }
+            
+            // 验证日期范围
+            if (bannerData.startDate && bannerData.endDate) {
+                if (new Date(bannerData.startDate) > new Date(bannerData.endDate)) {
+                    showToast('开始日期不能晚于结束日期', 'error');
+                    return;
+                }
+            }
+            
+            try {
+                if (bannerId) {
+                    // 更新现有Banner
+                    const index = bannersData.findIndex(b => b.id === bannerId);
+                    if (index !== -1) {
+                        bannersData[index] = {
+                            ...bannersData[index],
+                            ...bannerData,
+                            updated_at: new Date().toISOString()
+                        };
+                    }
+                } else {
+                    // 创建新Banner
+                    const newBanner = {
+                        ...bannerData,
+                        id: 'banner-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    };
+                    bannersData.push(newBanner);
+                }
+                
+                // 保存到服务器
+                const response = await fetch('/api/data/banners', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: bannersData })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    hideModal('bannerModal');
+                    renderBannersGrid();
+                    showToast(bannerId ? 'Banner更新成功！' : 'Banner创建成功！', 'success');
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('保存Banner失败:', error);
+                showToast('保存失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 切换Banner状态
+        async function toggleBannerStatus(bannerId, newStatus) {
+            try {
+                const index = bannersData.findIndex(b => b.id === bannerId);
+                if (index === -1) {
+                    showToast('Banner不存在', 'error');
+                    return;
+                }
+                
+                bannersData[index].status = newStatus;
+                bannersData[index].updated_at = new Date().toISOString();
+                
+                // 保存到服务器
+                const response = await fetch('/api/data/banners', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: bannersData })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    renderBannersGrid();
+                    showToast(`Banner已${newStatus === 'active' ? '启用' : '禁用'}！`, 'success');
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('切换Banner状态失败:', error);
+                showToast('操作失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 复制Banner
+        async function duplicateBanner(bannerId) {
+            const banner = bannersData.find(b => b.id === bannerId);
+            if (!banner) {
+                showToast('Banner不存在', 'error');
+                return;
+            }
+            
+            try {
+                const newBanner = {
+                    ...banner,
+                    id: 'banner-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+                    title: banner.title + ' (副本)',
+                    status: 'inactive', // 副本默认禁用
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+                
+                bannersData.push(newBanner);
+                
+                // 保存到服务器
+                const response = await fetch('/api/data/banners', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: bannersData })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    renderBannersGrid();
+                    showToast('Banner复制成功！', 'success');
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('复制Banner失败:', error);
+                showToast('复制失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 删除Banner
+        async function deleteBanner(bannerId) {
+            const banner = bannersData.find(b => b.id === bannerId);
+            if (!banner) {
+                showToast('Banner不存在', 'error');
+                return;
+            }
+            
+            if (!confirm(`确定要删除Banner"${banner.title}"吗？此操作不可恢复！`)) {
+                return;
+            }
+            
+            try {
+                bannersData = bannersData.filter(b => b.id !== bannerId);
+                
+                // 保存到服务器
+                const response = await fetch('/api/data/banners', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: bannersData })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    renderBannersGrid();
+                    showToast('Banner删除成功！', 'success');
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('删除Banner失败:', error);
+                showToast('删除失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 预览Banner效果
+        function previewBanners() {
+            // 创建预览模态框
+            const previewHtml = `
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="this.remove()">
+                    <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-screen overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold">🖼️ Banner预览效果</h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+                        </div>
+                        
+                        <!-- 首页横幅预览 -->
+                        <div class="mb-8">
+                            <h4 class="text-lg font-bold mb-3">首页横幅效果：</h4>
+                            <div class="border rounded-lg overflow-hidden">
+                                ${renderBannerPreview('hero')}
+                            </div>
+                        </div>
+                        
+                        <!-- 侧边栏预览 -->
+                        <div class="mb-8">
+                            <h4 class="text-lg font-bold mb-3">侧边栏效果：</h4>
+                            <div class="border rounded-lg p-4 bg-gray-50">
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="col-span-2 bg-white p-4 rounded">
+                                        <div class="text-gray-600">主要内容区域...</div>
+                                    </div>
+                                    <div>
+                                        ${renderBannerPreview('sidebar')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 内容区预览 -->
+                        <div class="mb-4">
+                            <h4 class="text-lg font-bold mb-3">内容区效果：</h4>
+                            <div class="border rounded-lg p-4">
+                                ${renderBannerPreview('content')}
+                            </div>
+                        </div>
+                        
+                        <div class="text-xs text-gray-500 mt-4">
+                            💡 预览显示的是当前启用状态的Banner，实际效果可能因响应式布局而有所不同
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', previewHtml);
+        }
+        
+        // 渲染Banner预览
+        function renderBannerPreview(position) {
+            const positionBanners = bannersData.filter(banner => 
+                banner.position === position && banner.status === 'active'
+            );
+            
+            if (positionBanners.length === 0) {
+                return `<div class="text-center py-8 text-gray-500">暂无${getPositionName(position)}Banner</div>`;
+            }
+            
+            return positionBanners.map(banner => `
+                <div class="mb-4 last:mb-0">
+                    <img src="${banner.imageUrl}" alt="${banner.title}" 
+                         class="w-full ${position === 'hero' ? 'h-40' : 'h-24'} object-cover rounded"
+                         onerror="this.src='${getPlaceholderImage()}'">
+                    ${banner.linkUrl ? `
+                        <div class="mt-2 text-center">
+                            <a href="${banner.linkUrl}" target="_blank" 
+                               class="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                                ${banner.linkText || '了解更多'}
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+        
+        // 重写hideModal以处理Banner表单
+        const originalHideModal = hideModal;
+        window.hideModal = function(modalId) {
+            if (modalId === 'bannerModal') {
+                // 清空Banner表单
+                document.getElementById('bannerForm').reset();
+                document.getElementById('bannerId').value = '';
+                updateBannerImagePreview('');
+            }
+            originalHideModal(modalId);
+        };
 
-        // AI功能
+        // ======================== 游戏管理功能 ========================
         async function testApiKey() {
             const apiKey = document.getElementById('apiKey').value;
             const model = document.getElementById('aiModel').value;
@@ -2836,7 +3478,7 @@
             }
         }
 
-        // 发布到网站功能
+        // 发布到网站功能 - 统一发布流程
         async function publishToWebsite() {
             const publishButton = document.getElementById('publishButton');
             const publishStatus = document.getElementById('publishStatus');
@@ -2855,7 +3497,7 @@
                 deploymentIndicator.className = 'w-2 h-2 rounded-full bg-yellow-500 inline-block mr-2 animate-pulse';
                 deploymentText.textContent = '正在发布...';
                 
-                // 调用服务端发布API
+                // 调用统一发布API
                 const response = await fetch('/api/publish-website', {
                     method: 'POST',
                     headers: {
@@ -2873,19 +3515,25 @@
                     publishStatus.textContent = '发布成功';
                     publishStatus.className = 'text-green-600 font-bold';
                     deploymentIndicator.className = 'w-2 h-2 rounded-full bg-green-500 inline-block mr-2';
-                    deploymentText.textContent = '发布成功';
+                    
+                    // 根据实际部署结果显示不同消息
+                    if (result.data.cloudflareDeployed) {
+                        deploymentText.textContent = 'Cloudflare部署成功';
+                        showToast('网站已发布到Cloudflare Pages！GitHub代码已同步备份。', 'success');
+                    } else if (result.data.githubBackup) {
+                        deploymentText.textContent = 'GitHub发布成功';
+                        showToast('网站已通过GitHub发布！建议配置Cloudflare以获得更好体验。', 'success');
+                    }
                     
                     const now = new Date();
                     document.getElementById('lastPublish').textContent = now.toLocaleString('zh-CN');
-                    
-                    showToast('网站内容已发布到GitHub Pages！', 'success');
                     
                     // 重新加载发布状态
                     setTimeout(() => {
                         loadPublishStatus();
                     }, 2000);
                     
-                    // 3秒后隐藏部署状态
+                    // 5秒后隐藏部署状态
                     setTimeout(() => {
                         deploymentStatus.classList.add('hidden');
                     }, 5000);
@@ -2906,9 +3554,9 @@
             } finally {
                 // 恢复按钮状态
                 publishButton.disabled = false;
-                publishButton.innerHTML = '🚀 发布到GitHub Pages';
+                publishButton.innerHTML = '🚀 一键发布';
                 
-                // 5秒后恢复状态
+                // 3秒后恢复状态显示
                 setTimeout(() => {
                     publishStatus.textContent = '准备就绪';
                     publishStatus.className = 'text-green-600 font-bold';

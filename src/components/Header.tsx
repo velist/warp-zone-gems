@@ -370,6 +370,13 @@ export const Header = () => {
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') {
                       setIsSearchOpen(false);
+                    } else if (e.key === 'Enter') {
+                      const query = (e.target as HTMLInputElement).value.trim();
+                      if (query) {
+                        // 关闭搜索框并跳转到搜索结果页
+                        setIsSearchOpen(false);
+                        navigate(`/search?q=${encodeURIComponent(query)}`);
+                      }
                     }
                   }}
                 />
@@ -392,7 +399,10 @@ export const Header = () => {
                       key={tag} 
                       variant="secondary" 
                       className="cursor-pointer hover:bg-primary/10 transition-colors"
-                      onClick={() => setIsSearchOpen(false)}
+                      onClick={() => {
+                        setIsSearchOpen(false);
+                        navigate(`/search?q=${encodeURIComponent(tag)}`);
+                      }}
                     >
                       {tag}
                     </Badge>

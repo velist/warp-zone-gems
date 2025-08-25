@@ -35,7 +35,7 @@ try {
 }
 
 const app = express();
-const PORT = config.server?.port || 3001;
+const PORT = process.env.PORT || 3010;
 
 // 配置multer用于文件上传
 const upload = multer({
@@ -874,6 +874,290 @@ app.post('/api/games', (req, res) => {
     }
 });
 
+// ======================== Banner管理API ========================
+
+// 创建新Banner
+app.post('/api/banners', (req, res) => {
+    const bannerData = req.body;
+    
+    try {
+        const banners = readJSONFile(DATA_PATHS.BANNERS);
+        
+        const newBanner = {
+            id: 'banner-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            title: bannerData.title,
+            description: bannerData.description || '',
+            imageUrl: bannerData.imageUrl,
+            linkUrl: bannerData.linkUrl || '',
+            linkText: bannerData.linkText || '',
+            position: bannerData.position || 'hero',
+            status: bannerData.status || 'active',
+            order: bannerData.order || 1,
+            startDate: bannerData.startDate || '',
+            endDate: bannerData.endDate || '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+        
+        banners.push(newBanner);
+        
+        const success = writeJSONFile(DATA_PATHS.BANNERS, banners);
+        
+        if (!success) {
+            throw new Error('保存Banner数据失败');
+        }
+        
+        res.json({
+            success: true,
+            data: newBanner
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 更新Banner
+app.put('/api/banners/:id', (req, res) => {
+    const { id } = req.params;
+    const bannerData = req.body;
+    
+    try {
+        const banners = readJSONFile(DATA_PATHS.BANNERS);
+        const bannerIndex = banners.findIndex(banner => banner.id === id);
+        
+        if (bannerIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                error: 'Banner不存在'
+            });
+        }
+        
+        // 更新Banner数据
+        banners[bannerIndex] = {
+            ...banners[bannerIndex],
+            ...bannerData,
+            updated_at: new Date().toISOString()
+        };
+        
+        const success = writeJSONFile(DATA_PATHS.BANNERS, banners);
+        
+        if (!success) {
+            throw new Error('保存Banner数据失败');
+        }
+        
+        res.json({
+            success: true,
+            data: banners[bannerIndex]
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 删除Banner
+app.delete('/api/banners/:id', (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        const banners = readJSONFile(DATA_PATHS.BANNERS);
+        const filteredBanners = banners.filter(banner => banner.id !== id);
+        
+        if (banners.length === filteredBanners.length) {
+            return res.status(404).json({
+                success: false,
+                error: 'Banner不存在'
+            });
+        }
+        
+        const success = writeJSONFile(DATA_PATHS.BANNERS, filteredBanners);
+        
+        if (!success) {
+            throw new Error('删除Banner数据失败');
+        }
+        
+        res.json({
+            success: true,
+            message: 'Banner删除成功'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 切换Banner状态
+app.patch('/api/banners/:id/status', (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!['active', 'inactive'].includes(status)) {
+        return res.status(400).json({
+            success: false,
+            error: '无效的状态值'
+        });
+    }
+    
+    try {
+        const banners = readJSONFile(DATA_PATHS.BANNERS);
+        const bannerIndex = banners.findIndex(banner => banner.id === id);
+        
+        if (bannerIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                error: 'Banner不存在'
+            });
+        }
+        
+        banners[bannerIndex].status = status;
+        banners[bannerIndex].updated_at = new Date().toISOString();
+        
+        const success = writeJSONFile(DATA_PATHS.BANNERS, banners);
+        
+        if (!success) {
+            throw new Error('更新Banner状态失败');
+        }
+        
+        res.json({
+            success: true,
+            data: banners[bannerIndex]
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 批量更新Banner顺序
+app.patch('/api/banners/reorder', (req, res) => {
+    const { bannerIds } = req.body;
+    
+    if (!Array.isArray(bannerIds)) {
+        return res.status(400).json({
+            success: false,
+            error: 'bannerIds必须是数组'
+        });
+    }
+    
+    try {
+        const banners = readJSONFile(DATA_PATHS.BANNERS);
+        
+        // 更新Banner顺序
+        bannerIds.forEach((id, index) => {
+            const bannerIndex = banners.findIndex(banner => banner.id === id);
+            if (bannerIndex !== -1) {
+                banners[bannerIndex].order = index + 1;
+                banners[bannerIndex].updated_at = new Date().toISOString();
+            }
+        });
+        
+        const success = writeJSONFile(DATA_PATHS.BANNERS, banners);
+        
+        if (!success) {
+            throw new Error('更新Banner顺序失败');
+        }
+        
+        res.json({
+            success: true,
+            message: 'Banner顺序更新成功'
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 复制Banner
+app.post('/api/banners/:id/duplicate', (req, res) => {
+    const { id } = req.params;
+    
+    try {
+        const banners = readJSONFile(DATA_PATHS.BANNERS);
+        const sourceBanner = banners.find(banner => banner.id === id);
+        
+        if (!sourceBanner) {
+            return res.status(404).json({
+                success: false,
+                error: 'Banner不存在'
+            });
+        }
+        
+        const newBanner = {
+            ...sourceBanner,
+            id: 'banner-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            title: sourceBanner.title + ' (副本)',
+            status: 'inactive', // 副本默认禁用
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+        
+        banners.push(newBanner);
+        
+        const success = writeJSONFile(DATA_PATHS.BANNERS, banners);
+        
+        if (!success) {
+            throw new Error('复制Banner失败');
+        }
+        
+        res.json({
+            success: true,
+            data: newBanner
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// 获取Banner统计信息
+app.get('/api/banners/stats', (req, res) => {
+    try {
+        const banners = readJSONFile(DATA_PATHS.BANNERS);
+        
+        const stats = {
+            total: banners.length,
+            active: banners.filter(b => b.status === 'active').length,
+            inactive: banners.filter(b => b.status === 'inactive').length,
+            byPosition: {
+                hero: banners.filter(b => b.position === 'hero').length,
+                sidebar: banners.filter(b => b.position === 'sidebar').length,
+                content: banners.filter(b => b.position === 'content').length
+            },
+            scheduled: banners.filter(b => b.startDate || b.endDate).length
+        };
+        
+        res.json({
+            success: true,
+            data: stats
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 // 删除数据项
 app.delete('/api/data/:type/:id', (req, res) => {
     const { type, id } = req.params;
@@ -977,7 +1261,7 @@ app.post('/api/git/:action', async (req, res) => {
     }
 });
 
-// 发布网站API
+// 统一发布网站API - Cloudflare部署 + GitHub自动备份
 app.post('/api/publish-website', async (req, res) => {
     const { message } = req.body;
     const commitMessage = message || 'Auto-publish: Update content from admin panel';
@@ -992,61 +1276,27 @@ app.post('/api/publish-website', async (req, res) => {
             fs.mkdirSync(publicDataDir, { recursive: true });
         }
         
-        // 复制数据文件
-        const sourceGames = DATA_PATHS.GAMES;
-        const sourceCategories = DATA_PATHS.CATEGORIES;
-        const targetGames = path.join(publicDataDir, 'games.json');
-        const targetCategories = path.join(publicDataDir, 'categories.json');
+        // 复制数据文件 - 确保前后端数据一致性
+        const sourceFiles = [
+            { source: DATA_PATHS.GAMES, target: path.join(publicDataDir, 'games.json') },
+            { source: DATA_PATHS.CATEGORIES, target: path.join(publicDataDir, 'categories.json') },
+            { source: DATA_PATHS.BANNERS, target: path.join(publicDataDir, 'banners.json') },
+            { source: DATA_PATHS.FLOATING_WINDOWS, target: path.join(publicDataDir, 'floating-windows.json') }
+        ];
         
-        fs.copyFileSync(sourceGames, targetGames);
-        fs.copyFileSync(sourceCategories, targetCategories);
+        for (const { source, target } of sourceFiles) {
+            if (fs.existsSync(source)) {
+                fs.copyFileSync(source, target);
+                console.log(`✅ 同步文件: ${path.basename(source)} -> public/data/`);
+            } else {
+                console.warn(`⚠️ 源文件不存在: ${source}`);
+            }
+        }
         
         console.log('✅ 数据文件同步完成');
         
-        // 2. Git操作：添加、提交、推送
-        console.log('🔄 提交更改到Git...');
-        
-        // 添加所有更改
-        await execAsync('git add .', { cwd: DATA_PATHS.PROJECT_ROOT });
-        
-        // 检查是否有更改需要提交
-        const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: DATA_PATHS.PROJECT_ROOT });
-        
-        if (statusOutput.trim() === '') {
-            return res.json({
-                success: true,
-                message: '没有新的更改需要发布',
-                data: {
-                    hasChanges: false,
-                    timestamp: new Date().toISOString()
-                }
-            });
-        }
-        
-        // 提交更改
-        const fullCommitMessage = `${commitMessage}
-
-🚀 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>`;
-        
-        await execAsync(`git commit -m "${fullCommitMessage}"`, { cwd: DATA_PATHS.PROJECT_ROOT });
-        console.log('✅ 更改已提交');
-        
-        // 推送到远程仓库
-        console.log('🔄 推送到GitHub...');
-        await execAsync('git push origin main', { cwd: DATA_PATHS.PROJECT_ROOT });
-        console.log('✅ 已推送到GitHub');
-        
-        res.json({
-            success: true,
-            message: '网站内容发布成功！GitHub Pages将在几分钟内自动更新。',
-            data: {
-                hasChanges: true,
-                timestamp: new Date().toISOString(),
-                commitMessage: fullCommitMessage.split('\n')[0]
-            }
-        });
+        // 2. 统一发布流程：Cloudflare部署 + GitHub自动备份
+        await unifiedDeployment(res, commitMessage);
         
     } catch (error) {
         console.error('发布失败:', error);
@@ -1060,6 +1310,116 @@ Co-Authored-By: Claude <noreply@anthropic.com>`;
         });
     }
 });
+
+// 统一部署函数 - Cloudflare优先 + GitHub自动备份
+async function unifiedDeployment(res, commitMessage) {
+    try {
+        console.log('🚀 开始统一部署流程...');
+        
+        // 步骤1: 构建项目
+        console.log('🔨 构建生产版本...');
+        await execAsync('npm run build', { cwd: DATA_PATHS.PROJECT_ROOT });
+        console.log('✅ 构建完成');
+        
+        // 步骤2: 部署到Cloudflare Pages（主要部署）
+        console.log('☁️ 部署到Cloudflare Pages...');
+        
+        // 检查Cloudflare API Token
+        const hasCloudflareToken = process.env.CLOUDFLARE_API_TOKEN;
+        if (!hasCloudflareToken) {
+            console.warn('⚠️ Cloudflare API Token未配置，将跳过Cloudflare部署');
+        }
+        
+        let deployUrl = 'https://aigame.lol';
+        let cloudflareSuccess = false;
+        
+        if (hasCloudflareToken) {
+            try {
+                const deployCmd = 'wrangler pages deploy dist --project-name=aigame-lol';
+                const { stdout: deployOutput } = await execAsync(deployCmd, { 
+                    cwd: DATA_PATHS.PROJECT_ROOT,
+                    env: { ...process.env, CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN }
+                });
+                
+                // 提取部署URL
+                const urlMatch = deployOutput.match(/https:\/\/[a-f0-9]+\.aigame-lol\.pages\.dev/);
+                if (urlMatch) deployUrl = urlMatch[0];
+                
+                console.log('✅ Cloudflare部署成功');
+                cloudflareSuccess = true;
+            } catch (cfError) {
+                console.warn('⚠️ Cloudflare部署失败，继续GitHub备份:', cfError.message);
+            }
+        }
+        
+        // 步骤3: GitHub自动备份（同步进行，不影响部署结果）
+        console.log('📦 执行GitHub代码备份...');
+        let gitBackupSuccess = false;
+        
+        try {
+            // 添加所有更改
+            await execAsync('git add .', { cwd: DATA_PATHS.PROJECT_ROOT });
+            
+            // 检查是否有更改需要提交
+            const { stdout: statusOutput } = await execAsync('git status --porcelain', { cwd: DATA_PATHS.PROJECT_ROOT });
+            
+            if (statusOutput.trim() !== '') {
+                // 提交更改
+                const fullCommitMessage = `${commitMessage}
+
+🚀 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>`;
+                
+                await execAsync(`git commit -m "${fullCommitMessage}"`, { cwd: DATA_PATHS.PROJECT_ROOT });
+                console.log('✅ 更改已提交到Git');
+                
+                // 推送到远程仓库（可选，不影响主要部署）
+                try {
+                    await execAsync('git push origin main', { cwd: DATA_PATHS.PROJECT_ROOT });
+                    console.log('✅ 已推送到GitHub（代码备份）');
+                    gitBackupSuccess = true;
+                } catch (pushError) {
+                    console.warn('⚠️ GitHub推送失败（不影响主要部署）:', pushError.message);
+                }
+            } else {
+                console.log('📝 没有新的更改需要备份');
+                gitBackupSuccess = true;
+            }
+        } catch (gitError) {
+            console.warn('⚠️ GitHub备份失败（不影响主要部署）:', gitError.message);
+        }
+        
+        // 返回部署结果
+        const deploymentMethod = cloudflareSuccess ? 'cloudflare' : 'github-fallback';
+        const isSuccess = cloudflareSuccess || gitBackupSuccess;
+        
+        if (isSuccess) {
+            res.json({
+                success: true,
+                message: cloudflareSuccess ? 
+                    '内容发布成功！Cloudflare Pages已更新，GitHub代码已同步备份。' : 
+                    '内容已通过GitHub发布，建议配置Cloudflare以获得更好的发布体验。',
+                data: {
+                    hasChanges: true,
+                    timestamp: new Date().toISOString(),
+                    commitMessage: commitMessage.split('\n')[0],
+                    deployMethod: deploymentMethod,
+                    deployUrl: deployUrl,
+                    websiteUrl: 'https://aigame.lol',
+                    cloudflareDeployed: cloudflareSuccess,
+                    githubBackup: gitBackupSuccess
+                }
+            });
+        } else {
+            throw new Error('所有部署方法都失败了');
+        }
+        
+    } catch (error) {
+        console.error('统一部署失败:', error);
+        throw new Error(`统一部署失败: ${error.message}`);
+    }
+}
 
 // 获取发布状态
 app.get('/api/publish-status', async (req, res) => {
@@ -1081,7 +1441,7 @@ app.get('/api/publish-status', async (req, res) => {
                     subject: subject
                 },
                 hasUncommittedChanges,
-                websiteUrl: 'https://velist.github.io/warp-zone-gems/',
+                websiteUrl: 'https://aigame.lol',
                 status: hasUncommittedChanges ? 'pending' : 'published'
             }
         });
