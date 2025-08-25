@@ -1,0 +1,20 @@
+[
+  {
+    "title": "每日游戏推荐",
+    "type": "announcement",
+    "position": "center",
+    "content": "",
+    "image": "",
+    "button_text": "",
+    "button_url": "",
+    "delay": 2,
+    "auto_close": 0,
+    "frequency": "once",
+    "start_date": "",
+    "end_date": "",
+    "enabled": true,
+    "updated_at": "2025-08-25T11:40:35.658Z",
+    "id": "popup_1756122032955",
+    "created_at": "2025-08-25T11:40:32.955Z"
+  }
+]

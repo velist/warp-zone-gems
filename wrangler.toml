@@ -1,0 +1,9 @@
+name = "aigame-lol"
+compatibility_date = "2024-08-24"
+pages_build_output_dir = "dist"
+
+# Environment variables will be set through Cloudflare dashboard
+# Required variables:
+# - VITE_SUPABASE_URL
+# - VITE_SUPABASE_ANON_KEY  
+# - VITE_IMGBB_API_KEY

@@ -84,13 +84,64 @@ const DATA_PATHS = {
 function readJSONFile(filePath) {
     try {
         if (fs.existsSync(filePath)) {
-            return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+            
+            // 如果是games.json，执行数据迁移
+            if (filePath.includes('games.json') && Array.isArray(data)) {
+                return migrateGamesData(data);
+            }
+            
+            return data;
         }
         return [];
     } catch (error) {
         console.error(`读取文件失败 ${filePath}:`, error);
         return [];
     }
+}
+
+// 数据迁移函数：将旧的download_link转换为download_links数组
+function migrateGamesData(games) {
+    let hasChanges = false;
+    
+    const migratedGames = games.map(game => {
+        // 如果已经有download_links但没有数据，且有download_link，则进行迁移
+        if ((!game.download_links || game.download_links.length === 0) && 
+            game.download_link && game.download_link !== '#') {
+            hasChanges = true;
+            
+            return {
+                ...game,
+                download_links: [{
+                    id: 'migrated_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                    service: 'other',
+                    url: game.download_link,
+                    password: '',
+                    label: '下载链接'
+                }]
+            };
+        }
+        
+        // 确保download_links字段存在
+        if (!game.download_links) {
+            hasChanges = true;
+            return {
+                ...game,
+                download_links: []
+            };
+        }
+        
+        return game;
+    });
+    
+    // 如果有更改，保存回文件
+    if (hasChanges) {
+        console.log('🔄 执行游戏数据迁移...');
+        writeJSONFile(DATA_PATHS.GAMES, migratedGames);
+        console.log('✅ 游戏数据迁移完成');
+    }
+    
+    return migratedGames;
 }
 
 function writeJSONFile(filePath, data) {
@@ -115,6 +166,36 @@ function generateId(title) {
         .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
         .replace(/^-+|-+$/g, '')
         .substring(0, 50);
+}
+
+// 验证下载链接数据
+function validateDownloadLinks(downloadLinks) {
+    if (!Array.isArray(downloadLinks)) {
+        return { valid: false, error: 'download_links 必须是数组' };
+    }
+    
+    const supportedServices = ['百度网盘', '天翼云盘', '阿里云盘', '微云', '115网盘', '蓝奏云', 'other'];
+    
+    for (let i = 0; i < downloadLinks.length; i++) {
+        const link = downloadLinks[i];
+        
+        if (!link.id || !link.service || !link.url) {
+            return { valid: false, error: `下载链接 ${i + 1} 缺少必要字段 (id, service, url)` };
+        }
+        
+        if (!supportedServices.includes(link.service)) {
+            return { valid: false, error: `下载链接 ${i + 1} 使用了不支持的服务类型: ${link.service}` };
+        }
+        
+        // 简单的URL验证
+        try {
+            new URL(link.url);
+        } catch (error) {
+            return { valid: false, error: `下载链接 ${i + 1} 的URL格式不正确: ${link.url}` };
+        }
+    }
+    
+    return { valid: true };
 }
 
 // API路由
@@ -314,7 +395,14 @@ app.post('/api/ai/process', async (req, res) => {
                 category: game.category || '平台跳跃',
                 tags: game.tags || [],
                 cover_image: game.coverImage || '/placeholder.svg',
-                download_link: game.downloadLink || '#',
+                download_link: game.downloadLink || '#', // 保持向后兼容
+                download_links: game.downloadLink ? [{
+                    id: 'link_' + Date.now(),
+                    service: 'other',
+                    url: game.downloadLink,
+                    password: '',
+                    label: '下载地址'
+                }] : [],
                 published_at: new Date().toISOString().split('T')[0],
                 view_count: Math.floor(Math.random() * 1000) + 100,
                 download_count: Math.floor(Math.random() * 500) + 50,
@@ -684,10 +772,26 @@ app.put('/api/games/:id', (req, res) => {
             });
         }
         
+        // 处理下载链接数据
+        const downloadLinks = gameData.download_links || games[gameIndex].download_links || [];
+        
+        // 验证下载链接数据
+        if (downloadLinks.length > 0) {
+            const validation = validateDownloadLinks(downloadLinks);
+            if (!validation.valid) {
+                return res.status(400).json({
+                    success: false,
+                    error: validation.error
+                });
+            }
+        }
+        
         // 更新游戏数据
         games[gameIndex] = {
             ...games[gameIndex],
             ...gameData,
+            download_links: downloadLinks,
+            download_link: gameData.download_link || (downloadLinks[0]?.url || games[gameIndex].download_link || '#'), // 向后兼容
             updated_at: new Date().toISOString()
         };
         
@@ -717,6 +821,20 @@ app.post('/api/games', (req, res) => {
     try {
         const games = readJSONFile(DATA_PATHS.GAMES);
         
+        // 处理下载链接数据
+        const downloadLinks = gameData.download_links || [];
+        
+        // 验证下载链接数据
+        if (downloadLinks.length > 0) {
+            const validation = validateDownloadLinks(downloadLinks);
+            if (!validation.valid) {
+                return res.status(400).json({
+                    success: false,
+                    error: validation.error
+                });
+            }
+        }
+        
         const newGame = {
             id: generateId(gameData.title),
             title: gameData.title,
@@ -724,7 +842,8 @@ app.post('/api/games', (req, res) => {
             category: gameData.category || '平台跳跃',
             tags: gameData.tags || [],
             cover_image: gameData.cover_image || '/placeholder.svg',
-            download_link: gameData.download_link || '#',
+            download_link: gameData.download_link || (downloadLinks[0]?.url || '#'), // 向后兼容
+            download_links: downloadLinks,
             published_at: gameData.status === 'published' ? new Date().toISOString().split('T')[0] : null,
             view_count: gameData.view_count || 0,
             download_count: gameData.download_count || 0,

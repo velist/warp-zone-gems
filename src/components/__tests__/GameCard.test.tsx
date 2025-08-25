@@ -54,7 +54,7 @@ describe('GameCard 组件测试', () => {
     const gameWithoutImage = { ...mockGame, cover_image: undefined }
     render(<GameCard game={gameWithoutImage} />)
     
-    expect(screen.getByText('🎮')).toBeInTheDocument()
+    expect(screen.getByText('📷')).toBeInTheDocument()
   })
 
   it('应该正确格式化发布日期', () => {

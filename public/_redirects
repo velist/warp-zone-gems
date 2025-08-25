@@ -1,0 +1,10 @@
+# Cloudflare Pages redirects for React Router
+# This ensures all routes are handled by the React app
+
+/* /index.html 200
+
+# Specific redirect rules for common paths
+/admin/* /index.html 200
+/game/* /index.html 200
+/search/* /index.html 200
+/categories/* /index.html 200

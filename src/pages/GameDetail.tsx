@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from "@/components/Header";
 import { SEOHead, createGameSEO } from "@/components/SEOHead";
+import { QRCodeModal } from "@/components/QRCodeModal";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +12,13 @@ import HideContent from '@/components/HideContent';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, Download, Star, Eye, Clock, Tag, User, Calendar } from 'lucide-react';
+
+interface DownloadLink {
+  type: string;
+  url: string;
+  password?: string;
+  label?: string;
+}
 
 interface Game {
   id: string;
@@ -23,6 +31,7 @@ interface Game {
   author?: string;
   published_at?: string;
   download_link?: string;
+  download_links?: DownloadLink[];
 }
 
 const GameDetail = () => {
@@ -33,6 +42,7 @@ const GameDetail = () => {
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [showQRModal, setShowQRModal] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -46,6 +56,7 @@ const GameDetail = () => {
       
       // 检测环境并选择数据源
       const isProduction = window.location.hostname === 'velist.github.io' || 
+                          window.location.hostname === 'aigame.lol' ||
                           window.location.protocol === 'https:' ||
                           process.env.NODE_ENV === 'production';
       
@@ -54,7 +65,7 @@ const GameDetail = () => {
       if (isProduction) {
         // 生产环境：直接读取静态JSON文件
         console.log('Production mode: fetching games from static JSON');
-        const response = await fetch('/warp-zone-gems/data/games.json');
+        const response = await fetch('/data/games.json');
         if (!response.ok) {
           throw new Error(`Failed to fetch games: ${response.status}`);
         }
@@ -106,6 +117,47 @@ const GameDetail = () => {
       day: 'numeric'
     });
   };
+
+  const getDownloadLinks = (): DownloadLink[] => {
+    if (!game) return [];
+    
+    const links: DownloadLink[] = [];
+    
+    // 优先使用新的 download_links 数组
+    if (game.download_links && game.download_links.length > 0) {
+      return game.download_links;
+    }
+    
+    // 兼容旧的 download_link 字段
+    if (game.download_link && game.download_link !== '#') {
+      links.push({
+        type: '下载链接',
+        url: game.download_link,
+        label: '默认下载'
+      });
+    }
+    
+    return links;
+  };
+
+  const handleDownloadClick = () => {
+    const downloadLinks = getDownloadLinks();
+    
+    if (downloadLinks.length === 0) {
+      return; // 没有下载链接
+    }
+    
+    if (downloadLinks.length === 1) {
+      // 只有一个链接，直接打开
+      window.open(downloadLinks[0].url, '_blank');
+    } else {
+      // 多个链接，显示QR码模态框
+      setShowQRModal(true);
+    }
+  };
+
+  const downloadLinks = getDownloadLinks();
+  const hasDownload = downloadLinks.length > 0;
 
   if (loading) {
     return (
@@ -316,11 +368,11 @@ const GameDetail = () => {
               <Button 
                 className="w-full mario-button animate-power-up" 
                 size="lg"
-                onClick={() => game.download_link && window.open(game.download_link, '_blank')}
-                disabled={!game.download_link}
+                onClick={handleDownloadClick}
+                disabled={!hasDownload}
               >
                 <Download className="w-5 h-5 mr-2" />
-                立即下载
+                {hasDownload ? (downloadLinks.length > 1 ? `立即下载 (${downloadLinks.length} 个选项)` : '立即下载') : '暂无下载'}
               </Button>
               
               <Button 
@@ -347,6 +399,14 @@ const GameDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* QR Code Modal */}
+      <QRCodeModal 
+        isOpen={showQRModal}
+        onClose={() => setShowQRModal(false)}
+        downloadLinks={downloadLinks}
+        gameTitle={game?.title || ''}
+      />
     </div>
   );
 };

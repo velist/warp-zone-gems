@@ -14,20 +14,24 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ classNam
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // 只在开发环境显示
-    if (process.env.NODE_ENV === 'development') {
-      setIsVisible(true);
-      
-      // 定期更新性能报告
-      const interval = setInterval(() => {
-        const newReport = getPerformanceReport();
-        if (newReport) {
-          setReport(newReport);
-        }
-      }, 5000);
+    // 完全禁用性能监控器 - 不在任何环境下显示
+    // 原来的逻辑：只在开发环境显示
+    // if (process.env.NODE_ENV === 'development') {
+    //   setIsVisible(true);
+    //   
+    //   // 定期更新性能报告
+    //   const interval = setInterval(() => {
+    //     const newReport = getPerformanceReport();
+    //     if (newReport) {
+    //       setReport(newReport);
+    //     }
+    //   }, 5000);
 
-      return () => clearInterval(interval);
-    }
+    //   return () => clearInterval(interval);
+    // }
+    
+    // 性能监控器已被隐藏以提供更清洁的用户界面
+    setIsVisible(false);
   }, []);
 
   const getGradeColor = (score: number) => {

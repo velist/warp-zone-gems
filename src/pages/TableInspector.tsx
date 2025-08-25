@@ -118,7 +118,7 @@ const TableInspector = () => {
       }
 
       // 读取JSON数据结构进行对比
-      const response = await fetch('/warp-zone-gems/data/games.json');
+      const response = await fetch('/data/games.json');
       const jsonGames = await response.json();
       const jsonFields = jsonGames.length > 0 ? Object.keys(jsonGames[0]) : [];
 

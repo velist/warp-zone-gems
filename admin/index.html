@@ -170,6 +170,62 @@
             box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
             border: 3px solid #fff;
         }
+        .download-link-item {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            background: #f9fafb;
+            position: relative;
+        }
+        .download-link-item.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        .remove-link-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 1;
+        }
+        .remove-link-btn:hover {
+            background: #dc2626;
+        }
+        .service-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .service-option {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            font-size: 12px;
+        }
+        .service-option:hover {
+            border-color: #3b82f6;
+        }
+        .service-option.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen">
@@ -971,7 +1027,17 @@
                         
                         <div class="form-group">
                             <label class="form-label">下载链接</label>
-                            <input type="url" id="gameDownloadLink" class="form-input" placeholder="https://example.com/download">
+                            <div id="downloadLinksContainer" class="space-y-3">
+                                <!-- 动态生成的下载链接将显示在这里 -->
+                            </div>
+                            <div class="flex space-x-2 mt-2">
+                                <button type="button" onclick="addDownloadLink()" class="blue-button text-white px-3 py-2 rounded text-sm">
+                                    ➕ 添加下载链接
+                                </button>
+                                <button type="button" onclick="previewDownloadLinks()" class="green-button text-white px-3 py-2 rounded text-sm">
+                                    👁️ 预览效果
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -1048,6 +1114,7 @@
         let websiteContent = {};
         let popupsData = [];
         let floatingElementsData = [];
+        let currentDownloadLinks = []; // 当前编辑的游戏下载链接
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
@@ -1398,6 +1465,7 @@
                                 <div class="flex space-x-4 text-xs text-gray-500">
                                     <span>👁️ ${game.view_count || 0}</span>
                                     <span>⬇️ ${game.download_count || 0}</span>
+                                    <span>🔗 ${game.download_links ? game.download_links.length : (game.download_link && game.download_link !== '#' ? 1 : 0)} 个下载</span>
                                     <span>📅 ${game.created_at ? new Date(game.created_at).toLocaleDateString() : '-'}</span>
                                 </div>
                                 <div class="flex space-x-2 flex-wrap gap-1">
@@ -1699,10 +1767,204 @@
             }
         }
 
+        // 下载链接管理功能
+        const CLOUD_SERVICES = [
+            { id: '百度网盘', name: '百度网盘', icon: '📁' },
+            { id: '天翼云盘', name: '天翼云盘', icon: '☁️' },
+            { id: '阿里云盘', name: '阿里云盘', icon: '💾' },
+            { id: '微云', name: '微云', icon: '📦' },
+            { id: '115网盘', name: '115网盘', icon: '💽' },
+            { id: '蓝奏云', name: '蓝奏云', icon: '🌐' },
+            { id: 'other', name: '其他', icon: '🔗' }
+        ];
+
+        function addDownloadLink() {
+            const linkId = 'link_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+            const newLink = {
+                id: linkId,
+                service: 'other',
+                url: '',
+                password: '',
+                label: '下载链接'
+            };
+            
+            currentDownloadLinks.push(newLink);
+            renderDownloadLinks();
+        }
+
+        function removeDownloadLink(linkId) {
+            currentDownloadLinks = currentDownloadLinks.filter(link => link.id !== linkId);
+            renderDownloadLinks();
+        }
+
+        function updateDownloadLink(linkId, field, value) {
+            const link = currentDownloadLinks.find(l => l.id === linkId);
+            if (link) {
+                link[field] = value;
+                
+                // 如果是服务类型变更，更新图标和默认标签
+                if (field === 'service') {
+                    const service = CLOUD_SERVICES.find(s => s.id === value);
+                    if (service && !link.label.includes(service.name)) {
+                        link.label = service.name + '下载';
+                    }
+                }
+                
+                renderDownloadLinks();
+            }
+        }
+
+        function renderDownloadLinks() {
+            const container = document.getElementById('downloadLinksContainer');
+            
+            if (currentDownloadLinks.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                        <p>暂无下载链接</p>
+                        <p class="text-sm">点击下方按钮添加下载链接</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = currentDownloadLinks.map((link, index) => {
+                const service = CLOUD_SERVICES.find(s => s.id === link.service);
+                return `
+                    <div class="download-link-item" data-link-id="${link.id}">
+                        <button type="button" class="remove-link-btn" onclick="removeDownloadLink('${link.id}')" title="删除此链接">×</button>
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-sm">存储服务</label>
+                            <div class="service-selector">
+                                ${CLOUD_SERVICES.map(s => `
+                                    <div class="service-option ${s.id === link.service ? 'selected' : ''}" 
+                                         onclick="updateDownloadLink('${link.id}', 'service', '${s.id}')">
+                                        <div>${s.icon}</div>
+                                        <div>${s.name}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="form-label text-sm">链接地址 *</label>
+                                <input type="url" class="form-input text-sm" placeholder="https://pan.baidu.com/s/..."
+                                       value="${link.url || ''}"
+                                       onchange="updateDownloadLink('${link.id}', 'url', this.value)">
+                            </div>
+                            <div>
+                                <label class="form-label text-sm">提取码/密码</label>
+                                <input type="text" class="form-input text-sm" placeholder="可选，如果需要的话"
+                                       value="${link.password || ''}"
+                                       onchange="updateDownloadLink('${link.id}', 'password', this.value)">
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label text-sm">显示标签</label>
+                            <input type="text" class="form-input text-sm" placeholder="如：百度网盘下载"
+                                   value="${link.label || ''}"
+                                   onchange="updateDownloadLink('${link.id}', 'label', this.value)">
+                        </div>
+
+                        <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+                            <span>链接 #${index + 1} - ${service ? service.icon + ' ' + service.name : '未知服务'}</span>
+                            <span class="${link.url ? 'text-green-600' : 'text-red-600'}">${link.url ? '✓ 已配置' : '✗ 需要URL'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadDownloadLinksFromGame(game) {
+            // 加载游戏的下载链接数据，支持向后兼容
+            currentDownloadLinks = [];
+            
+            if (game.download_links && Array.isArray(game.download_links)) {
+                currentDownloadLinks = [...game.download_links];
+            } else if (game.download_link && game.download_link !== '#') {
+                // 如果只有老的download_link，自动转换
+                currentDownloadLinks = [{
+                    id: 'migrated_' + Date.now(),
+                    service: 'other',
+                    url: game.download_link,
+                    password: '',
+                    label: '下载链接'
+                }];
+            }
+            
+            renderDownloadLinks();
+        }
+
+        function getDownloadLinksForSave() {
+            // 验证并返回下载链接数据
+            const validLinks = currentDownloadLinks.filter(link => {
+                return link.url && link.url.trim() && link.url !== '#';
+            });
+            
+            return validLinks.map(link => ({
+                id: link.id,
+                service: link.service || 'other',
+                url: link.url.trim(),
+                password: link.password || '',
+                label: link.label || '下载链接'
+            }));
+        }
+
+        function previewDownloadLinks() {
+            const validLinks = getDownloadLinksForSave();
+            
+            if (validLinks.length === 0) {
+                showToast('请先添加至少一个下载链接', 'error');
+                return;
+            }
+
+            // 模拟前端展示的效果
+            const previewHtml = `
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="this.remove()">
+                    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4" onclick="event.stopPropagation()">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold">下载链接预览</h3>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">这是用户在前端看到的下载链接效果：</p>
+                        <div class="space-y-2">
+                            ${validLinks.map(link => {
+                                const service = CLOUD_SERVICES.find(s => s.id === link.service);
+                                return `
+                                    <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                                        <span>${service ? service.icon : '🔗'}</span>
+                                        <span>${link.label}</span>
+                                        ${link.password ? '<span class="text-xs opacity-75">(需提取码)</span>' : ''}
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="mt-4 p-3 bg-gray-100 rounded text-sm text-gray-600">
+                            <p><strong>说明：</strong></p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>用户点击按钮会显示二维码模态框</li>
+                                <li>二维码包含下载链接和提取码信息</li>
+                                <li>支持复制链接和提取码功能</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', previewHtml);
+        }
+
         // 显示模态框
         function showModal(modalId) {
             const modal = document.getElementById(modalId);
             modal.classList.add('show');
+            
+            // 如果是游戏模态框且没有现有的下载链接，初始化一个空列表
+            if (modalId === 'gameModal' && currentDownloadLinks.length === 0) {
+                renderDownloadLinks();
+            }
         }
 
         // 隐藏模态框
@@ -1719,6 +1981,10 @@
                 // 重置上传状态
                 document.getElementById('uploadBtn').disabled = true;
                 document.getElementById('uploadStatus').textContent = '';
+                
+                // 清空下载链接
+                currentDownloadLinks = [];
+                renderDownloadLinks();
             }
         }
 
@@ -1747,7 +2013,6 @@
             document.getElementById('gameCategory').value = game.category;
             document.getElementById('gameDescription').value = game.description || '';
             document.getElementById('gameCoverImage').value = game.cover_image || '';
-            document.getElementById('gameDownloadLink').value = game.download_link || '';
             document.getElementById('gameStatus').value = game.status || 'draft';
             document.getElementById('gameTags').value = Array.isArray(game.tags) ? game.tags.join(', ') : '';
             document.getElementById('gameViewCount').value = game.view_count || 0;
@@ -1755,6 +2020,9 @@
             
             // 更新图片预览
             updateImagePreview(game.cover_image);
+            
+            // 加载下载链接
+            loadDownloadLinksFromGame(game);
             
             showModal('gameModal');
         }
@@ -1764,12 +2032,15 @@
             event.preventDefault();
             
             const gameId = document.getElementById('gameId').value;
+            const downloadLinks = getDownloadLinksForSave();
+            
             const gameData = {
                 title: document.getElementById('gameTitle').value,
                 category: document.getElementById('gameCategory').value,
                 description: document.getElementById('gameDescription').value,
                 cover_image: document.getElementById('gameCoverImage').value || '/placeholder.svg',
-                download_link: document.getElementById('gameDownloadLink').value || '#',
+                download_link: downloadLinks.length > 0 ? downloadLinks[0].url : '#', // 向后兼容
+                download_links: downloadLinks,
                 status: document.getElementById('gameStatus').value,
                 tags: document.getElementById('gameTags').value.split(',').map(tag => tag.trim()).filter(tag => tag),
                 view_count: parseInt(document.getElementById('gameViewCount').value) || 0,

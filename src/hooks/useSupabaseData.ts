@@ -32,15 +32,20 @@ interface Category {
 // 检测环境并获取数据源URL
 const getDataSource = () => {
   const isProduction = window.location.hostname === 'velist.github.io' || 
+                      window.location.hostname === 'aigame.lol' ||
                       window.location.protocol === 'https:' ||
                       process.env.NODE_ENV === 'production';
   
+  // 检测是否是 Cloudflare Pages 部署
+  const isCloudflarePages = window.location.hostname === 'aigame.lol';
+  
   if (isProduction) {
     // 生产环境：直接读取静态JSON文件
+    const basePath = isCloudflarePages ? '' : '/warp-zone-gems';
     return {
       type: 'static',
-      gamesUrl: '/warp-zone-gems/data/games.json',
-      categoriesUrl: '/warp-zone-gems/data/categories.json'
+      gamesUrl: `/data/games.json`,
+      categoriesUrl: `/data/categories.json`
     };
   } else {
     // 开发环境：使用本地管理后台API
@@ -69,7 +74,11 @@ export const useSupabaseData = () => {
 
         if (dataSource.type === 'static') {
           // 生产环境：直接读取静态JSON文件
-          console.log('Production mode: fetching static JSON files');
+          console.log('Production mode: fetching static JSON files', {
+            gamesUrl: dataSource.gamesUrl,
+            categoriesUrl: dataSource.categoriesUrl,
+            hostname: window.location.hostname
+          });
           
           const [gamesResponse, categoriesResponse] = await Promise.all([
             fetch(dataSource.gamesUrl),

@@ -8,15 +8,19 @@ export const getEnvironmentConfig = () => {
   // 使用更精确的生产环境检测
   const isProduction = import.meta.env.PROD || 
                        window.location.hostname === 'velist.github.io' || 
+                       window.location.hostname === 'aigame.lol' || 
                        window.location.protocol === 'https:';
   
-  const baseUrl = isProduction ? '/warp-zone-gems' : '';
+  // Cloudflare Pages 使用根路径，GitHub Pages 使用子路径
+  const isCloudflarePages = window.location.hostname === 'aigame.lol';
+  const baseUrl = isProduction ? (isCloudflarePages ? '' : '/warp-zone-gems') : '';
   
   return {
     isProduction,
     baseUrl,
     hostname: window.location.hostname,
-    protocol: window.location.protocol
+    protocol: window.location.protocol,
+    isCloudflarePages
   };
 };
 
@@ -59,10 +63,22 @@ export const fetchData = async <T = any>(endpoint: keyof ReturnType<typeof getDa
   const config = getDataConfig();
   const url = config.urls[endpoint];
   
+  // Debug logging for troubleshooting
+  console.log(`[DataConfig] Fetching ${endpoint}:`, {
+    url,
+    configType: config.type,
+    environment: getEnvironmentConfig()
+  });
+  
   try {
     const response = await fetch(url);
     
     if (!response.ok) {
+      console.error(`[DataConfig] HTTP Error ${response.status} for ${endpoint}:`, {
+        url,
+        status: response.status,
+        statusText: response.statusText
+      });
       throw new Error(`Failed to fetch ${endpoint}: ${response.status}`);
     }
     
@@ -72,10 +88,19 @@ export const fetchData = async <T = any>(endpoint: keyof ReturnType<typeof getDa
       return result.success ? result.data : [];
     } else {
       // 静态文件直接返回JSON
-      return await response.json();
+      const data = await response.json();
+      console.log(`[DataConfig] Successfully loaded ${endpoint}:`, { 
+        itemCount: Array.isArray(data) ? data.length : 'non-array',
+        url 
+      });
+      return data;
     }
   } catch (error) {
-    console.error(`Error fetching ${endpoint}:`, error);
+    console.error(`[DataConfig] Error fetching ${endpoint}:`, {
+      error: error instanceof Error ? error.message : error,
+      url,
+      configType: config.type
+    });
     // 返回空数组作为后备方案
     return [] as T;
   }

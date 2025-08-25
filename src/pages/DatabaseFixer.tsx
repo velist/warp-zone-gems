@@ -81,7 +81,7 @@ const DatabaseFixer = () => {
           const backupTableName = `games_backup_${Date.now()}`;
           
           // 先从JSON文件获取完整数据结构
-          const response = await fetch('/warp-zone-gems/data/games.json');
+          const response = await fetch('/data/games.json');
           const jsonGames = await response.json();
           
           if (jsonGames && jsonGames.length > 0) {
@@ -154,7 +154,7 @@ const DatabaseFixer = () => {
 
         // 如果字段存在，直接进行完整同步
         try {
-          const response = await fetch('/warp-zone-gems/data/games.json');
+          const response = await fetch('/data/games.json');
           const jsonGames = await response.json();
           
           const completeGames = jsonGames.map(game => ({

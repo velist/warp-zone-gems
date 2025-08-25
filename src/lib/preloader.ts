@@ -95,10 +95,13 @@ export class SmartPreloader {
 
   private async fetchGames(limit: number): Promise<any[]> {
     // 检测环境
-    const isProduction = window.location.hostname === 'velist.github.io';
+    const isProduction = window.location.hostname === 'velist.github.io' ||
+                        window.location.hostname === 'aigame.lol' ||
+                        window.location.protocol === 'https:' ||
+                        process.env.NODE_ENV === 'production';
     
     if (isProduction) {
-      const response = await fetch('/warp-zone-gems/data/games.json');
+      const response = await fetch('/data/games.json');
       const games = await response.json();
       return games.slice(0, limit);
     } else {

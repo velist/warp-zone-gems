@@ -10,8 +10,8 @@ const path = require('path');
 
 // Supabase 配置 (需要手动配置)
 const SUPABASE_CONFIG = {
-  url: 'YOUR_SUPABASE_URL',
-  serviceKey: 'YOUR_SUPABASE_SERVICE_KEY' // 需要service_role key，不是anon key
+  url: 'https://oiatqeymovnyubrnlmlu.supabase.co',
+  serviceKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pYXRxZXltb3ZueXVicm5sbWx1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDMyMzQzNiwiZXhwIjoyMDY5ODk5NDM2fQ.On6-6jHsnyeQikwpunIZybx_KLzMsSXsSQimcadMn58' // 需要service_role key，不是anon key
 };
 
 async function syncGamesToDatabase() {
@@ -46,21 +46,17 @@ async function syncGamesToDatabase() {
     
     console.log(`🗄️ 数据库现有游戏: ${existingGames?.length || 0} 个`);
     
-    // 4. 准备同步数据 - 转换格式
+    // 4. 准备同步数据 - 转换格式（不包含id让数据库自动生成UUID）
     const gamesToSync = gamesData.map(game => ({
-      id: game.id, // 保持相同的ID
       title: game.title,
       description: game.description || '',
       content: game.content || game.description || '',
       cover_image: game.cover_image || '',
       category: game.category,
       tags: game.tags || [],
-      author: game.author || 'System',
-      download_link: game.download_link || '#',
-      published_at: game.published_at || game.created_at || new Date().toISOString(),
-      status: game.status || 'published',
-      view_count: game.view_count || 0,
-      download_count: game.download_count || 0
+      author: game.author || 'Unknown',
+      published_at: game.published_at || game.created_at || new Date().toISOString()
+      // 注意：数据库表中没有 download_link, status, view_count, download_count 字段
     }));
     
     // 5. 执行 UPSERT 操作 (插入或更新)

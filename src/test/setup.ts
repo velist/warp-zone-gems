@@ -71,3 +71,27 @@ global.console = {
   warn: vi.fn(),
   error: vi.fn(),
 }
+
+// Mock IntersectionObserver
+class IntersectionObserverMock {
+  observe = vi.fn()
+  disconnect = vi.fn()
+  unobserve = vi.fn()
+  
+  constructor(callback: IntersectionObserverCallback) {
+    // Immediately trigger callback with mock entry
+    setTimeout(() => {
+      callback([{
+        isIntersecting: true,
+        target: document.createElement('div'),
+        intersectionRatio: 1,
+        boundingClientRect: new DOMRect(),
+        intersectionRect: new DOMRect(),
+        rootBounds: new DOMRect(),
+        time: Date.now()
+      } as IntersectionObserverEntry], this as any)
+    }, 0)
+  }
+}
+
+global.IntersectionObserver = IntersectionObserverMock as any
