@@ -360,30 +360,50 @@ export const Header = () => {
         {isSearchOpen && (
           <div className="absolute top-full left-0 right-0 bg-card/95 backdrop-blur-lg border-b shadow-lg animate-in slide-in-from-top-5 duration-300">
             <div className="container mx-auto px-4 py-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="搜索游戏资源..."
-                  className="w-full pl-10 pr-4 py-3 bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') {
-                      setIsSearchOpen(false);
-                    } else if (e.key === 'Enter') {
-                      const query = (e.target as HTMLInputElement).value.trim();
-                      if (query) {
-                        // 关闭搜索框并跳转到搜索结果页
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="搜索游戏资源..."
+                    className="w-full pl-10 pr-4 py-3 bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
                         setIsSearchOpen(false);
+                      } else if (e.key === 'Enter') {
+                        const query = (e.target as HTMLInputElement).value.trim();
+                        console.log('搜索查询:', query); // 调试日志
+                        if (query) {
+                          setIsSearchOpen(false);
+                          console.log('跳转到搜索页:', `/search?q=${encodeURIComponent(query)}`); // 调试日志
+                          navigate(`/search?q=${encodeURIComponent(query)}`);
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                <Button
+                  className="mario-button"
+                  onClick={() => {
+                    const input = document.querySelector('input[placeholder="搜索游戏资源..."]') as HTMLInputElement;
+                    if (input) {
+                      const query = input.value.trim();
+                      console.log('按钮搜索查询:', query); // 调试日志
+                      if (query) {
+                        setIsSearchOpen(false);
+                        console.log('按钮跳转到搜索页:', `/search?q=${encodeURIComponent(query)}`); // 调试日志
                         navigate(`/search?q=${encodeURIComponent(query)}`);
                       }
                     }
                   }}
-                />
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  搜索
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
                   onClick={() => setIsSearchOpen(false)}
                 >
                   <X className="w-4 h-4" />
