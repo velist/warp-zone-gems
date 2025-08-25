@@ -27,18 +27,14 @@
     <meta name="twitter:title" content="Warp Zone Gems - 精品游戏资源分享平台" />
     <meta name="twitter:description" content="专业的游戏资源分享平台，提供丰富的3A游戏、赛车游戏、动作游戏、冒险游戏和解谜游戏下载" />
 
-    <!-- GitHub Pages SPA 重定向处理脚本 -->
+    <!-- 确保HashRouter正常工作 -->
     <script type="text/javascript">
-      (function(l) {
-        if (l.search[1] === '/' ) {
-          var decoded = l.search.slice(1).split('&').map(function(s) { 
-            return s.replace(/~and~/g, '&')
-          }).join('?');
-          window.history.replaceState(null, null,
-              l.pathname.slice(0, -1) + decoded + l.hash
-          );
+      // 确保根路径正确跳转到HashRouter
+      (function() {
+        if (window.location.pathname === '/' && !window.location.hash) {
+          window.location.hash = '#/';
         }
-      }(window.location))
+      })();
     </script>
   </head>
 
