@@ -35,7 +35,7 @@ try {
 }
 
 const app = express();
-const PORT = process.env.PORT || 3011;
+const PORT = process.env.PORT || 3012;
 
 // 配置multer用于文件上传
 const upload = multer({
